@@ -475,10 +475,10 @@ angular.module('MainApp')
           console.log('connecting')
           $timeout(() => {
             console.log('Some time after?')
-              //            ArduinoComm.getAddr((err, addr) => {
-              //              console.log('Arduino serial addr:', addr)
-              //              connectV2(addr, afterConnectCallback)
-              //            })
+            ArduinoComm.getAddr((err, addr) => {
+              console.log('Arduino serial addr:', addr)
+              connectV2(addr, afterConnectCallback)
+            })
           }, 2500)
         }
       })
@@ -508,19 +508,27 @@ angular.module('MainApp')
     }
 
     $scope.test = function () {
-      //      let serialport = require('serialport')
-      //      serialport.list((err, ports) => {
-      //        console.log('err:', err)
-      //        console.log('ports:', ports)
-      //      })
 
-
-      ArduinoComm.list((err, ports) => {
-        console.log('err:', err)
-        ports.forEach((port) => {
-          console.log(port, 'undefined? ', port.manufacturer == undefined)
+      utils.getReceiveTransmitStats($scope.selectDevice, (err, receive, transmit, timestamp) => {
+          if (err) {
+            console.log(err)
+          } else {
+            console.log(receive)
+            console.log(transmit)
+            console.log(new Date(timestamp))
+            $scope.pbsCheck = {
+              bytes: receive.bytes,
+              timestamp: timestamp
+            }
+          }
         })
-      })
+        //      let serialport = require('serialport')
+        //      serialport.list((err, ports) => {
+        //        console.log('err:', err)
+        //        console.log('ports:', ports)
+        //      })
+
+
 
 
       // TESTING parseArduinoMsg

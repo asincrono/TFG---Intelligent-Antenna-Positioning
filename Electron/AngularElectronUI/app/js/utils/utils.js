@@ -3,12 +3,13 @@
 const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
 framework/Versions/Current/Resources/airport -I'
 
-const DARWIN_NETSTAT_CMD = ''
-const LINUX_CMD_STATS = 'cat /proc/net/wireless'
-const LINUX_CMD_RXTX = 'cat /proc/net/dev'
+const DARWIN_NETSTAT_CMD = 'netstat'
+const LINUX_CAT_STATS_ARGS = ['/proc/net/wireless']
+const LINUX_CAT_CMD = 'cat'
+const LINUX_CAT_RXTX_ARGS = ['/proc/net/dev']
 const LINUX_PROC_PATH = ''
-const LINUX_LIST_DEV_CMD = 'nmcli'
-const LINUX_LIST_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
+  // const LINUX_NMCLI_CMD = 'nmcli'
+  // const LINUX_NMCLI_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
 const WINDOWS_NETSH_CMD = ''
 const WINDOWS_NETSH_ARGS = ''
 
@@ -132,7 +133,10 @@ class NetStats {
   constructor(signal, noise, tx, rx) {
     this.signal = signal
     this.noise = noise
-    this.bitrate = {tx, rx}
+    this.bitrate = {
+      tx,
+      rx
+    }
     this.timeStamp = Date.now()
   }
 
@@ -198,28 +202,28 @@ function parseDarwin(data) {
 
 function getNetStats(callback) {
   switch (os.platform()) {
-  case 'darwin':
-    {
-      exec(DARWIN_AIRPORT_CMD, (err, stdout, stderr) => {
-        if (err) {
-          console.log(err, stderr)
-        } else {
-          callback(parseDarwin(stdout))
-        }
-      })
-    }
-    break
-  case 'linux':
-    {
-      exec(LINUX_CMD_STATS, (err, stdout, stderr) => {
-        if (err) {
-          console.log(err, stderr)
-        } else {
-          callback(parseLinux(stdout))
-        }
-      })
-    }
-    break
+    case 'darwin':
+      {
+        exec(DARWIN_AIRPORT_CMD, (err, stdout, stderr) => {
+          if (err) {
+            console.log(err, stderr)
+          } else {
+            callback(parseDarwin(stdout))
+          }
+        })
+      }
+      break
+    case 'linux':
+      {
+        execFile(LINUX_CAT_CMD, LINUX_CAT_STATS_ARGS, (err, stdout, stderr) => {
+          if (err) {
+            console.log(err, stderr)
+          } else {
+            callback(parseLinux(stdout))
+          }
+        })
+      }
+      break
   }
 }
 
@@ -227,7 +231,6 @@ function listIfaces() {
   let ifaces = os.networkInterfaces()
   let ifNames = []
   for (let ifName in ifaces) {
-    console.log('ifname:', ifName)
     ifNames.push(ifName)
   }
   return ifNames
@@ -297,18 +300,9 @@ function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-function listDevices(callback) {
-  execFile(LINUX_LIST_DEV_CMD, LINUX_LIST_DEV_ARGS, (err, stdout, stderr) => {
-    if (err) {
-      console.log(err)
-    } else {
-
-    }
-  })
-}
-
-function getRxTx(device, callback) {
-  exec(LINUX_CMD_RXTX, (err, stdout, stderr) => {
+function getReceiveTransmitStats(device, callback) {
+  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr, timestap) => {
+    let timestap = Date.now()
     if (err) {
       callback(err)
     } else {
@@ -316,11 +310,52 @@ function getRxTx(device, callback) {
       let line = lines.filter((line) => {
         return line.includes(device)
       })[0]
-      let values = lines[3].replace(/\s+/g, ' ').slice(1).split(' ')
-      let rx = values[1]
-      let tx = values[9]
+      if (line) {
+        let values = line.slice(1).split(' ')
+
+        let receive = {
+          bytes: parseInt(values[1]),
+          packets: parseInt(values[2]),
+          errs: parseInt(values[3]),
+          drop: parseInt(values[4])
+        }
+
+        let transmit = {
+          bytes: parseInt(values[9]),
+          packets: parseInt(values[10]),
+          errs: parseInt(values[11]),
+          drop: parseInt(values[12])
+        }
+        callback(null, receive, transmit, timestap)
+      } else {
+        callback(new Error(`Device "${device}" not found.`))
+      }
     }
-    callback(null, rx, tx)
+  })
+}
+
+/*
+Callback will recive err, bytes readed byt the device and the timestap for that
+read.
+*/
+function getRx(device, callback) {
+  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
+    let timestap = Date.now()
+    if (err) {
+      callback(err)
+    } else {
+      let lines = stdout.split('\n')
+      let line = lines.filter((line) => {
+        return line.includes(device)
+      })[0]
+      if (line) {
+        let values = line.replace(/\s+/g, ' ').slice(1).split(' ')
+        let rx = parseInt(values[1])
+        callback(null, rx, timestap)
+      } else {
+        callback(new Error(`Device "${device}" not found.`))
+      }
+    }
   })
 }
 
@@ -368,7 +403,8 @@ exports.NetStats = NetStats
 exports.listIfaces = listIfaces
 exports.testLs = testLs
 exports.getNetStats = getNetStats
-exports.getRxTx = getRxTx
+exports.getReceiveTransmitStats = getReceiveTransmitStats
+exports.getRx = getRx
 exports.trimParenthesis = trimParenthesis
 exports.decCoordToPercent = decCoordToPercent
 exports.percentCoordToDec = percentCoordToDec
