@@ -1,0 +1,18 @@
+{
+  "name": "AntennaPositionController",
+  "verson": "0.0.0",
+  "main": "main.js",
+  "description": "Web interface to control Arduino based WiFi antenna positioning device",
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  },
+  "dependencies": {
+    "electron-prebuilt": "1.1.2",
+    "material-design-icons": "^2.2.3",
+    "serialport": "^4.0.0-beta3",
+    "usb-detection": "^1.4.0"
+  },
+  "scripts": {
+    "start": "node_modules/.bin/electron ."
+  }
+}

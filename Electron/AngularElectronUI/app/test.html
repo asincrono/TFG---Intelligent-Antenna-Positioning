@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <link rel="stylesheet" href="css/test-master.css">
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.css">
+  <link rel="stylesheet" href="bower_components/angular-material/angular-material.min.css">
+  <script src="bower_components/jquery/dist/jquery.js"></script>
+  <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+  <!--  Angular Material Dependencies-->
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-animate/angular-animate.js"></script>
+  <script src="bower_components/angular-messages/angular-messages.js"></script>
+  <script src="bower_components/angular-aria/angular-aria.js"></script>
+  <!--  Angular Material JS-->
+  <script src="bower_components/angular-material/angular-material.js"></script>
+</head>
+
+<body ng-app="TestApp">
+  <div class="container" layout="column" ng-controller="TestController as testCtrl">
+    <div layout="row">
+      <div layout="column" class="control" flex>
+        <div layout="row">
+          <md-button class="md-raised md-primary">Start</md-button>
+          <md-button class="md-raised md-warn">Stop</md-button>
+        </div>
+        <div class="inset options-div">
+          <md-switch ng-model="manual_auto" aria-label="Auto switch" ng-true-value="'manual'" ng-false-value="'auto'"> {{ manual_auto }} mode </md-switch>
+        </div>
+        <div class="form-group">
+          <label for="input-pos" class="control-label col-sm-5">Position:</label>
+          <div class="col-sm-3">
+            <input class="form-control input-sm" ng-disabled="manual_auto === 'auto'" type="text" id="input-pos" placeholder="0, 0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="input-num-m" class="control-label col-sm-5">WiFi readings:</label>
+          <div class="col-sm-3">
+            <input class="form-control input-sm" type="text" ng-bind="configuration.number_readings" id="input-num-m" placeholder="5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="input-time-m" class="control-label col-sm-5">Reading delay:</label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control input-sm" ng-bind="configuration.reading_delay" id="input-time-m" placeholder="1000">
+          </div>
+        </div>
+      </div>
+      <md-divider></md-divider>
+      <div class="content" flex>
+
+      </div>
+    </div>
+    <div class="graph-div">Grapth element</div>
+  </div>
+
+  <!--
+    <div class="row">
+      <div class="col-md-6 col-sm-6">
+        columna 1
+        <div class="button-div">
+        <md-button class="md-raised md-primary" ng-disabled="!connected" ng-click="start()">Start</md-button>
+        <md-button class="md-raised md-warn" ng-disabled="!started" ng-click="stop()">Stop</md-button>
+          <div class="col-md-3 col-sm-3 col-md-offset-1 col-sm-offset-1 btn btn-primary btn-start" ng-disabled="!connected" ng-click="start()">Start</div>
+          <div class="col-md-3 col-sm-3 col-md-offset-1 col-sm-offset-1 btn btn-danger btn-stop" ng-disabled="!started" ng-click="stop()">Stop</div>
+        </div>
+        <div class="inset options-div" ng-controller="TestController as testCtrl">
+          <md-switch ng-model="manual_auto" aria-label="Auto switch" ng-true-value="'manual'" ng-false-value="'auto'"> {{ manual_auto }} mode </md-switch>
+        </div>
+        <div>
+          Number of wifi measures
+        </div>
+        <div>
+          Cosas que pasan
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Signal</th>
+              <th>Noise</th>
+            </tr>
+            <tr>
+              <td>Cosas</td>
+              <td>Que</td>
+              <td>Pasan</td>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div class="col-md-6 col-sm-6">
+        columna 2
+        <div class="canvas-div">
+          <p>Current antenna position:</p>
+          <canvas id="canvas" width="150" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="graph-div"></div>
+    </div>
+  </div>
+-->
+  <!--
+    <div class="row">
+      <div class="col-md-6 col-sm-6 button-div">
+        <div class="col-md-3 col-sm-3 col-md-offset-1 col-sm-offset-1 btn btn-primary btn-start" ng-disabled="!connected" ng-click="start()">Start</div>
+        <div class="col-md-3 col-sm-3 col-md-offset-1 col-sm-offset-1 btn btn-danger btn-stop" ng-disabled="!started" ng-click="stop()">Stop</div>
+        <div class="row">
+          <div class="col-md-6 col-sm-6 tbl-div">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Signal</th>
+                  <th>Noise</th>
+                </tr>
+                <tr>
+                  <td>Cosas</td>
+                  <td>Que</td>
+                  <td>Pasan</td>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-sm-6 canvas-div">
+        <p>Current antenna position:</p>
+        <canvas id="canvas" width="150" height="150"></canvas>
+      </div>
+ 
+
+      <div class="col-md-6 col-sm-6 options-div inset">
+        <md-switch ng-model="manual_auto" aria-label="Auto switch" ng-true-value="'manual'" ng-false-value="'auto'"> {{ manual_auto }} mode </md-switch>
+      </div>
+      <div class="col-md-6 col-sm-6">
+        Number of wifi measures
+      </div>
+      <div class="col-md-6 col-sm-6">
+        Cosas que pasan
+      </div>
+    </div>
+
+
+
+    <div class="row">
+      <div class="col-md-12 col-sm-12 graph-div" id="linechart">
+      </div>
+    </div>
+  </div>
+-->
+
+</body>
+<script src="js/test-app.js"></script>
+<script src="js/controllers/test-controller.js"></script>
+
+</html>

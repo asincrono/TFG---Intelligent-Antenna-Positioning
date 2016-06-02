@@ -1,0 +1,26 @@
+{
+  "name": "AntennaPositionController",
+  "description": "Web interface to control Arduino based WiFi antenna positioning device",
+  "main": "main.js",
+  "authors": [
+    "Manuel C. Piñeiro Mourazos <asincrono@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "electron",
+    "javascritp",
+    "nodejs"
+  ],
+  "homepage": "https://github.com/asincrono/TFG",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-material": "^1.0.8",
+    "ng-electron": "develephant/ng-electron#^0.4.0"
+  }
+}

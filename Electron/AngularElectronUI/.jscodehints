@@ -1,0 +1,6 @@
+{
+  "excluded-files" : ["jquey*.js", "bootstrap*.js", "loader.js", "angular*.js"],
+  "excluded-directories" : ["/app/bower_components", "/app/node_modules"],
+  "max-file-count" : "100",
+  "max-file-size": "524288"
+}
