@@ -301,7 +301,7 @@ function rand(min, max) {
 }
 
 function getReceiveTransmitStats(device, callback) {
-  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr, timestap) => {
+  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
     let timestap = Date.now()
     if (err) {
       callback(err)
