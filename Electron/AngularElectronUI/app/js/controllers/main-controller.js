@@ -66,6 +66,33 @@ angular.module('MainApp')
       maxTries: 50
     }
 
+    function setDeviceSelectionMenu() {
+      let selectDevice = {
+        label: 'Select device',
+        submenu: []
+      }
+
+      let devices = utils.listIfaces()
+
+      devices.forEach((device) => {
+        let deviceMenu = {
+          label: device,
+          type: 'radio',
+          checked: false,
+          click(item, focusedWindow) {
+            console.log('clicked', device)
+            $scope.$apply(() => {
+              $scope.selectedDevice = device
+            })
+          }
+        }
+        selectDevice.submenu.push(deviceMenu)
+      })
+      let selectDeviceMenu = new MenuItem(selectDevice)
+      appMenu.insert(3, selectDeviceMenu)
+      Menu.setApplicationMenu(appMenu)
+    }
+
     function genMXYMsg(position, rows, cols, args) {
       let xStep = 99 / (rows - 1)
       let yStep = 99 / (cols - 1)
@@ -416,6 +443,8 @@ angular.module('MainApp')
 
       $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
 
+      setDeviceSelectionMenu()
+
       // Watch changes in positionWithStats -> save values to file.
       registrateWatcher(
         (scope) => {
@@ -556,39 +585,39 @@ angular.module('MainApp')
         )
 
         switch ($scope.configuration.mode) {
-        case 'auto':
-          console.log('Starting in auto mode...')
+          case 'auto':
+            console.log('Starting in auto mode...')
 
-          //          let afterWifiReadigs = function () {
-          //            $scope.currentPosition.next($scope.rows, $scope.columns)
-          //          }
+            //          let afterWifiReadigs = function () {
+            //            $scope.currentPosition.next($scope.rows, $scope.columns)
+            //          }
 
-          registrateWatcher((scope) => {
-            return scope.currentPosition
-          }, (newValue, oldValue) => {
-            console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
-            if (newValue) {
-              if (newValue.x === 0 && newValue.y === 0) {
-                resetAntennaPosition(500)
-              } else if (oldValue) {
-                if (newValue.x != oldValue.x) {
-                  //console.log('Moving X to: ', newValue.x)
-                  moveAntennaX(newValue.x, $scope.rows)
-                } else if (newValue.y != oldValue.y) {
-                  //console.log('Moving Y to', newValue.y)
-                  moveAntennaY(newValue.y, $scope.columns)
+            registrateWatcher((scope) => {
+              return scope.currentPosition
+            }, (newValue, oldValue) => {
+              console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
+              if (newValue) {
+                if (newValue.x === 0 && newValue.y === 0) {
+                  resetAntennaPosition(500)
+                } else if (oldValue) {
+                  if (newValue.x != oldValue.x) {
+                    //console.log('Moving X to: ', newValue.x)
+                    moveAntennaX(newValue.x, $scope.rows)
+                  } else if (newValue.y != oldValue.y) {
+                    //console.log('Moving Y to', newValue.y)
+                    moveAntennaY(newValue.y, $scope.columns)
+                  }
+                } else {
+                  resetAntennaPosition(500)
                 }
-              } else {
-                resetAntennaPosition(500)
               }
-            }
-          }, true)
-          break
-        case 'manual':
-          console.log('starting in manual...')
-          let [x, y] = parsePosition($scope.manualPosition)
-          $scope.currentPosition.setCoords(x, y)
-          break
+            }, true)
+            break
+          case 'manual':
+            console.log('starting in manual...')
+            let [x, y] = parsePosition($scope.manualPosition)
+            $scope.currentPosition.setCoords(x, y)
+            break
         }
 
       }

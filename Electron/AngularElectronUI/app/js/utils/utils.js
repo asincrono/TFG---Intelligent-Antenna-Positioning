@@ -226,7 +226,8 @@ function getNetStats(callback) {
 function listIfaces() {
   let ifaces = os.networkInterfaces()
   let ifNames = []
-  for (let ifName in listIfaces) {
+  for (let ifName in ifaces) {
+    console.log('ifname:', ifName)
     ifNames.push(ifName)
   }
   return ifNames
