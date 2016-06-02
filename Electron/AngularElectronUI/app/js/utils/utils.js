@@ -6,10 +6,9 @@ framework/Versions/Current/Resources/airport -I'
 const DARWIN_NETSTAT_CMD = ''
 const LINUX_CMD_STATS = 'cat /proc/net/wireless'
 const LINUX_CMD_RXTX = 'cat /proc/net/dev'
-const LINUX_CMD_ARGS = ''
-const LINUX_CMD_RATE = ''
-const LINUX_CMD_RATE_ARGS = ''
 const LINUX_PROC_PATH = ''
+const LINUX_LIST_DEV_CMD = 'nmcli'
+const LINUX_LIST_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
 const WINDOWS_NETSH_CMD = ''
 const WINDOWS_NETSH_ARGS = ''
 
@@ -130,19 +129,17 @@ class Position {
 }
 
 class NetStats {
-  constructor(signal, noise, tx) {
+  constructor(signal, noise, tx, rx) {
     this.signal = signal
     this.noise = noise
-    this.tx = tx
-    this.rx = rx
+    this.bitrate = {tx, rx}
     this.timeStamp = Date.now()
   }
 
   updateStats(stats) {
     this.signal = stats.signal
     this.noise = stats.noise
-    this.tx = stats.tx
-    this.rx = stats.rx
+    this.bitrate = stats.bitrate
     this.timeStamp = Date.now()
   }
 }
@@ -151,7 +148,6 @@ class NetStats {
 class AntennaPosition extends Position {
   constructor(x, y, stats) {
     super(x, y)
-
     this.stats = stats
   }
 
@@ -228,7 +224,12 @@ function getNetStats(callback) {
 }
 
 function listIfaces() {
-  return os.networkInterfaces()
+  let ifaces = os.networkInterfaces()
+  let ifNames = []
+  for (let ifName in listIfaces) {
+    ifNames.push(ifName)
+  }
+  return ifNames
 }
 
 function rTrim(str, char) {
@@ -295,13 +296,26 @@ function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-function getRxTx(callback) {
+function listDevices(callback) {
+  execFile(LINUX_LIST_DEV_CMD, LINUX_LIST_DEV_ARGS, (err, stdout, stderr) => {
+    if (err) {
+      console.log(err)
+    } else {
+
+    }
+  })
+}
+
+function getRxTx(device, callback) {
   exec(LINUX_CMD_RXTX, (err, stdout, stderr) => {
     if (err) {
       callback(err)
     } else {
       let lines = stdout.split('\n')
-      let values = lines[3].replace(/\s+/g, ' ').splice(1).split(' ')
+      let line = lines.filter((line) => {
+        return line.includes(device)
+      })[0]
+      let values = lines[3].replace(/\s+/g, ' ').slice(1).split(' ')
       let rx = values[1]
       let tx = values[9]
     }
