@@ -73,8 +73,16 @@ angular.module('MainApp')
       }
 
       let devices = utils.listIfaces()
-
+      let selected = false
       devices.forEach((device) => {
+        // We select the first avaliable device
+        let check = false
+        if (!selected) {
+          check = true
+          $scope.selectedDevice = device
+          selected = true
+        }
+        
         let deviceMenu = {
           label: device,
           type: 'radio',
@@ -509,7 +517,7 @@ angular.module('MainApp')
 
     $scope.test = function () {
 
-      utils.getReceiveTransmitStats($scope.selectDevice, (err, receive, transmit, timestamp) => {
+      utils.getReceiveTransmitStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
           if (err) {
             console.log(err)
           } else {
