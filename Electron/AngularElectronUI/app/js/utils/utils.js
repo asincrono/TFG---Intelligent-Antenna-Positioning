@@ -311,6 +311,7 @@ function getReceiveTransmitStats(device, callback) {
         return line.includes(device)
       })[0]
       if (line) {
+        console.log('(getRecevTransStat) line:', line)
         let values = line.slice(1).split(' ')
 
         let receive = {
