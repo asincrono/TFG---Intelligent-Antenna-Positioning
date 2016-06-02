@@ -2,7 +2,7 @@
 
 const utils = require('./js/utils/utils.js')
 
-const {exec, spawn} = require('child_process')
+const {exec, execFile, spawn} = require('child_process')
 
 const fs = require('fs')
 
