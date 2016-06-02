@@ -359,6 +359,28 @@ function getRx(device, callback) {
   })
 }
 
+function getTx(device, callback) {
+  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
+    let timestap = Date.now()
+    if (err) {
+      callback(err)
+    } else {
+      let lines = stdout.split('\n')
+      let line = lines.filter((line) => {
+        return line.includes(device)
+      })[0]
+
+      if (line) {
+        let values = line.replace(/\s+/g, ' ').slice(1).split(' ')
+        let tx = parseInt(values[9])
+        callback(null, tx, timestap)
+      } else {
+        callback(new Error(`Device "${device}" not found.`))
+      }
+    }
+  })
+}
+
 class Executor {
   constructor(cmd, args) {
     this.cmd = cmd
@@ -405,6 +427,7 @@ exports.testLs = testLs
 exports.getNetStats = getNetStats
 exports.getReceiveTransmitStats = getReceiveTransmitStats
 exports.getRx = getRx
+exports.getTx = getTx
 exports.trimParenthesis = trimParenthesis
 exports.decCoordToPercent = decCoordToPercent
 exports.percentCoordToDec = percentCoordToDec

@@ -82,7 +82,7 @@ angular.module('MainApp')
           $scope.selectedDevice = device
           selected = true
         }
-        
+
         let deviceMenu = {
           label: device,
           type: 'radio',
@@ -575,12 +575,46 @@ angular.module('MainApp')
 
       let afterWifiReadings
       if ($scope.configuration.mode === 'auto') {
+        // first bitrate reading
+        utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
+          if (err) {
+            console.log(err)
+          } else {
+            $scope.bytesAndTime = {
+              bytes: bytes,
+              timestamp: timestamp
+            }
+          }
+        })
         afterWifiReadings = function () {
-          //console.log('(mainCtrl) after wifi?')
+          // last bitrate reading
+          utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
+              let timestamp = Date.now()
+              if (err) {
+                console.log(err)
+              } else {
+                let bitrate = $scope.bytesAndTime.bytes * 1000 / (timestamp - $scope.bytesAndTime.timestamp)
+                $scope.$apply(() => {
+                  $scope.bitrate = Math.trunc(bitrate)
+                })
+              }
+            })
+            //console.log('(mainCtrl) after wifi?')
           $scope.currentPosition.next($scope.rows, $scope.columns)
         }
       } else {
         afterWifiReadings = function () {
+          utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
+            let timestamp = Date.now()
+            if (err) {
+              console.log(err)
+            } else {
+              let bitrate = $scope.bytesAndTime.bytes * 1000 / (timestamp - $scope.bytesAndTime.timestamp)
+              $scope.$apply(() => {
+                $scope.bitrate = Math.trunc(bitrate)
+              })
+            }
+          })
           resetAntennaPosition(500)
         }
       }
@@ -594,7 +628,21 @@ angular.module('MainApp')
             return scope.antennaPosition
           }, (newValue, oldValue) => {
             if (newValue) {
-              // timeout, delay, readings, filePath, callback)
+              // First bittrate reading (before start wifiReadins and then after
+              utils.getReceiveTransmitStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
+                  if (err) {
+                    console.log(err)
+                  } else {
+                    console.log(receive)
+                    console.log(transmit)
+                    console.log(new Date(timestamp))
+                    $scope.pbsCheck = {
+                      bytes: receive.bytes,
+                      timestamp: timestamp
+                    }
+                  }
+                })
+                // timeout, delay, readings, filePath, callback)
               wifiReadings(1500, $scope.configuration.readingDelay, $scope.configuration.numberOfReadings, afterWifiReadings)
             }
           }
