@@ -307,7 +307,7 @@ angular.module('MainApp')
 
         $interval(() => {
           //console.log('Inside timmer function')
-          NetStats.getNetStats((netStats) => {
+          NetStats.getNetStats($scope.selectedDevice, (netStats) => {
             netStatsList.push(netStats)
             $scope.positionWithStats = new utils.AntennaPosition($scope.antennaPosition.x, $scope.antennaPosition.y, netStats)
           })

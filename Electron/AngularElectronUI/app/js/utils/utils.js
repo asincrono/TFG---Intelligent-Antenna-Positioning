@@ -186,9 +186,13 @@ class AntennaPosition extends Position {
   }
 }
 
-function parseLinux(data) {
-  let line = data.split('\n')[2]
-  let values = line.split(/\s+/)
+function parseLinux(device, data) {
+  let lines = data.split('\n')
+  let line = lines.filter((line) => {
+    line.includes(device)
+  })
+
+  let values = line.slice(1).split(/\s+/)
   let level = parseInt(rTrim(values[3], '.'))
   let noise = parseInt(rTrim(values[4], '.'))
   return new NetStats(level, noise)
@@ -200,7 +204,7 @@ function parseDarwin(data) {
   return new NetStats(level, noise)
 }
 
-function getNetStats(callback) {
+function getNetStats(device, callback) {
   switch (os.platform()) {
     case 'darwin':
       {
@@ -219,7 +223,7 @@ function getNetStats(callback) {
           if (err) {
             console.log(err, stderr)
           } else {
-            callback(parseLinux(stdout))
+            callback(parseLinux(device, stdout))
           }
         })
       }
@@ -300,8 +304,13 @@ function getReceiveTransmitStats(device, callback) {
       let line = lines.filter((line) => {
         return line.includes(device)
       })[0]
+
       if (line) {
-        let values = line.replace(/\s+/g, ' ').slice(1).split(' ')
+        let values = line.split(/\s+/)
+        if (values[0] === '') {
+          values.splice(0,1)
+        }
+
         console.log('values:', values)
         let receive = {
           bytes: parseInt(values[1]),
@@ -339,7 +348,10 @@ function getRx(device, callback) {
         return line.includes(device)
       })[0]
       if (line) {
-        let values = line.replace(/\s+/g, ' ').slice(1).split(' ')
+        let values = line.split(/\s+/)
+        if (values[0] === '') {
+          values.splice(0,1)
+        }
         let rx = parseInt(values[1])
         callback(null, rx, timestap)
       } else {
@@ -361,7 +373,10 @@ function getTx(device, callback) {
       })[0]
 
       if (line) {
-        let values = line.replace(/\s+/g, ' ').slice(1).split(' ')
+        let values = line.split(/\s+/)
+        if (values[0] === '') {
+          values.splice(0,1)
+        }
         let tx = parseInt(values[9])
         callback(null, tx, timestap)
       } else {
@@ -403,11 +418,6 @@ class Executor {
   }
 }
 
-/* Comment
-getNetInfo('en1', netStat => {
-  console.log('Result : %s', netStat.toString())
-})
-*/
 exports.Executor = Executor
 exports.Position = Position
 exports.AntennaPosition = AntennaPosition
