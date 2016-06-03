@@ -190,9 +190,7 @@ function parseLinux(device, data) {
   let lines = data.split('\n')
 
   let line = lines.filter((line) => {
-    console.log(`Line "${line}".`)
-    console.log(`Looking for "${device}".`)
-    line.includes(device)
+    return line.includes(device)
   })[0]
 
   if (line) {
