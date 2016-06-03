@@ -3,7 +3,6 @@
 angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
   // Load serial module.
   const SerialPort = require('serialport')
-    //const SerialPort = serialport.SerialPort
 
   return {
     list: function (callback)  {
@@ -28,7 +27,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       })
     },
     //    listPorts: function (callback) {
-    //      serialport.list((err, portList) => {
+    //      SerialPort.list((err, portList) => {
     //        if (err) {
     //          console.log(err)
     //        } else {
@@ -38,7 +37,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
     //    },
     //
     //    getAddr: function (callback) {
-    //      serialport.list((err, portList) => {
+    //      SerialPort.list((err, portList) => {
     //        let addr
     //        if (portList) {
     //          let filteredList = portList.filter((port) => {
@@ -55,7 +54,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
     //        console.log('error:', error, 'addr:', addr)
     //        callback(err, addr)
     //      })
-    //      serialport.list((err, portList) => {
+    //      SerialPort.list((err, portList) => {
     //        if (err) {
     //          console.log(err)
     //        } else {
@@ -89,7 +88,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
-          parser: serialport.parsers.readline('\n')
+          parser: SerialPort.parsers.readline('\n')
         },
         error => {
           console.log('Failed to open:', error)
@@ -118,7 +117,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
-          parser: serialport.parsers.readline('\n')
+          parser: SerialPort.parsers.readline('\n')
         },
         err => {
           if (err) {

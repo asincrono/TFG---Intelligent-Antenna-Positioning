@@ -76,10 +76,10 @@
               <th>Bps</th>
             </tr>
             <tr>
-              <td ng-bind="currentPosition.toString()">Cosa 1</td>
-              <td ng-bind="positionWithStats.stats.signal">Cosa 2</td>
-              <td ng-bind="positionWithStats.stats.noise">Cosa 3</td>
-              <td ng-bind="bitrate">bitrate</td>
+              <td ng-bind="currentPosition.toString()">position</td>
+              <td ng-bind="netStats.level">level</td>
+              <td ng-bind="netStats.noise">noise</td>
+              <td ng-bind="netStats.bitrate.rx">bitrate</td>
             </tr>
           </thead>
         </table>
