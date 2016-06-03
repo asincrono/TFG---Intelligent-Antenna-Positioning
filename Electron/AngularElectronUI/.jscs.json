@@ -1,5 +1,4 @@
 {
-  "preset": "google",
   "disallowSemicolons": true,
-  "requireTrailingComma": true
+  "requireTrailingComma": false
 }

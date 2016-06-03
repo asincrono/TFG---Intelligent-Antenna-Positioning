@@ -26,7 +26,7 @@ const menuTemplate = [
        label: 'Reload',
        accelerator: 'CmdOrCtrl+R',
        click(item, focusedWindow) {
-         if (focusedWindow) focusedWindow.reload();
+         if (focusedWindow) focusedWindow.reload()
        }
      },
      {
@@ -34,7 +34,7 @@ const menuTemplate = [
        accelerator: process.platform === 'darwin' ? 'Ctrl+Command+F' : 'F11',
        click(item, focusedWindow) {
          if (focusedWindow)
-           focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
+           focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
        }
      },
      {
@@ -50,7 +50,7 @@ const menuTemplate = [
        accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
        click(item, focusedWindow) {
          if (focusedWindow)
-           focusedWindow.webContents.toggleDevTools();
+           focusedWindow.webContents.toggleDevTools()
        }
      },
    ]
@@ -84,7 +84,7 @@ const menuTemplate = [
 ]
 
 if (process.platform === 'darwin') {
- const name = app.getName();
+ const name = app.getName()
  menuTemplate.unshift({
    label: name,
    submenu: [
@@ -126,7 +126,7 @@ if (process.platform === 'darwin') {
        click() { app.quit(); }
      },
    ]
- });
+ })
  // Window menu.
  menuTemplate[2].submenu.push(
    {

@@ -20,10 +20,10 @@ angular.module('MainApp')
       let x = 0
       let y = 0
       while (position < limit) {
-        yield {
+        yield ({
           v: position,
           f: `${x}, ${y}`
-        }
+        })
 
         if (x % 2 === 0) {
           y += 1
@@ -169,6 +169,8 @@ angular.module('MainApp')
       $scope.data.addColumn('number', 'Position')
       $scope.data.addColumn('number', 'Signal', 'signal')
       $scope.data.addColumn('number', 'Noise', 'noise')
+      // bitrate?
+      $scope.data.addColumn('number', 'Bitrate', 'bitrate')
 
       new google.visualization.LineChart(document.getElementById('linechart'))
     }

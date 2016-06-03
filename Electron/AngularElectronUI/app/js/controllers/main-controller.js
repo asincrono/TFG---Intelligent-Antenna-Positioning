@@ -27,6 +27,9 @@ angular.module('MainApp')
     const CURL_CMD = 'curl'
     const CURL_ARGS = ['-s', '-o', '/dev/null', '-u', `${USER}:${PASS}`, '-w', '"%{speed_download}"', URL]
 
+    // max bitrate according to AP
+    const MAX_BITRATE_M = 450
+
     const DEFAULTS = {
       connectionReconnect: true,
       connectionMaxTries: 3,
@@ -184,20 +187,8 @@ angular.module('MainApp')
       return [x, y]
     }
 
-    function connectV2(addr, callback) {
+    function connect(addr, dataCallback, afterCallback) {
       if ($scope.port === undefined || !$scope.port.isOpen()) {
-
-        let dataCallback = function (data) {
-          // Function to react to received data.
-          console.log('Readed:', data)
-          if ($scope.started) {
-            // We need to process the answer from Arduino
-            $scope.$apply(() => {
-              $scope.antennaPosition = parseArduinoMsg(data, $scope.rows, $scope.columns)
-              console.log('Antenna position:', $scope.antennaPosition)
-            })
-          }
-        }
 
         let openCallback = function (error) {
           if (error) {
@@ -207,17 +198,17 @@ angular.module('MainApp')
               console.log(`Trying to connect: try ${$scope.connectionTries} in ${RECONNECT_TIMEOUT/1000} seconds.`)
 
               $timeout(() => {
-                connectV2(addr, callback)
+                connect(addr, dataCallback, afterCallback)
               }, RECONNECT_TIMEOUT, false)
-            } else if (callback) {
-              callback(error)
+            } else if (afterCallback) {
+              afterCallback(error)
             }
           } else {
             $scope.$apply(() => {
               $scope.connected = true
             })
-            if (callback) {
-              callback()
+            if (afterCallback) {
+              afterCallback()
             }
           }
         }
@@ -229,57 +220,17 @@ angular.module('MainApp')
     }
 
 
-    function connect(callback) {
-      if ($scope.port === undefined || !$scope.port.isOpen()) {
-        console.log('Trying to connect.')
-        ArduinoComm.getAddr((err, addr) => {
-          if (addr) {
-            console.log('Arduino addr:', addr)
-
-            let dataCallback = function (data) {
-              // Function to react to received data.
-              console.log('Readed:', data)
-              if ($scope.started) {
-                // We need to process the answer from Arduino
-                $scope.$apply(() => {
-                  let newPosition = parseArduinoMsg(data, $scope.rows, $scope.columns, TOLERANCE)
-                  console.log('newPosition:', newPosition)
-                    //$scope.antennaPosition.setFromPosition(newPosition)
-                  $scope.antennaPosition = newPosition
-                })
-                NetStats.getNetStats((stats) => {
-                  console.log('netStats:', stats)
-                  $scope.netStats = stats
-                })
-              }
-            }
-
-            let openCallback = function (error) {
-              if (error) {
-                console.log('Failed to connect:', error)
-                if ($scope.connectionTries < RECONNECT_MAX_TRIES) {
-                  $scope.connectionTries += 1
-                  console.log(`Trying to connect: try ${$scope.connectionTries} in ${RECONNECT_TIMEOUT/1000} seconds.`)
-
-                  $timeout(connect, RECONNECT_TIMEOUT, false)
-                } else if (callback) {
-                  callback(error)
-                }
-              } else {
-                $scope.$apply(() => {
-                  $scope.connected = true
-                })
-                if (callback) {
-                  callback()
-                }
-              }
-            }
-
-            $scope.port = ArduinoComm.createOpenAndSetupPort(addr, BAUD_RATE, openCallback, dataCallback)
-          }
+    let dataCallback = function (data) {
+      // Function to react to received data.
+      console.log('Readed:', data)
+      if ($scope.started) {
+        // We need to process the answer from Arduino
+        $scope.$apply(() => {
+          $scope.antennaPosition = parseArduinoMsg(data, $scope.rows, $scope.columns)
+          // When we reach a new position we make a bitrate checkpoit
+          checkBitrate()
+          console.log('Antenna position:', $scope.antennaPosition)
         })
-      } else {
-        console.log('Already connected.')
       }
     }
 
@@ -352,7 +303,15 @@ angular.module('MainApp')
       let afterReadings = function () {
         //console.log('afterReadings')
         //console.log('callback =', callback)
-        $scope.netStats = genMeanNetStats(netStatsList)
+        let netStats = genMeanNetStats(netStatsList)
+        /* Afther this checkBitrate we modify bitrate in the netStats and
+        then we set the scope netstas value.
+        */
+        checkBitrate(() => {
+          netStats.bitrate.rx = $scope.bitrate
+          $scope.netStats = netStats
+        } )
+
         callback(netStatsList)
       }
 
@@ -446,8 +405,8 @@ angular.module('MainApp')
       //      $scope.antennaPosition
       //      $scope.netStats
 
-      $scope.positionWithStats
-      $scope.tempStats
+      $scope.positionWithStats = undefined
+      $scope.tempStats = undefined
 
       $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
 
@@ -464,6 +423,21 @@ angular.module('MainApp')
           }
         }
       )
+
+      // Actions to perform when data received from Arduino
+      let afterDataCallback = function (data) {
+        // Function to react to received data.
+        console.log('Readed:', data)
+        if ($scope.started) {
+          // We need to process the answer from Arduino
+          $scope.$apply(() => {
+            $scope.antennaPosition = parseArduinoMsg(data, $scope.rows, $scope.columns)
+            // When we reach a new position we make a bitrate checkpoit
+            checkBitrate()
+            console.log('Antenna position:', $scope.antennaPosition)
+          })
+        }
+      }
 
       let afterConnectCallback = function (error) {
         if (!error) {
@@ -485,14 +459,14 @@ angular.module('MainApp')
             console.log('Some time after?')
             ArduinoComm.getAddr((err, addr) => {
               console.log('Arduino serial addr:', addr)
-              connectV2(addr, afterConnectCallback)
+              connect(addr, afterDataCallback, afterConnectCallback)
             })
           }, 2500)
         }
       })
 
       usbDetect.on('remove', (device) => {
-        console.log('Removed', device);
+        console.log('Removed', device)
         if (device.manufacturer.includes('Arduino')) {
           console.log('Disconnecting')
           $scope.$apply(() => {
@@ -501,14 +475,17 @@ angular.module('MainApp')
         }
       })
 
+      // Initiate the curl command data transmission
 
+      // First bitrate check.
+      checkBitrate()
 
       //       Try to connect
       //       Try to get Arduino addr
       ArduinoComm.getAddr((addr) => {
         if (addr) {
           console.log('Arduino serial addr:', addr)
-          connectV2(addr, afterConnectCallback)
+          connect(addr, afterDataCallback, afterConnectCallback)
         }
       })
 
@@ -565,56 +542,46 @@ angular.module('MainApp')
 
     }
 
+    function checkBitrate(callback) {
+      utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
+        if (err) {
+          console.log(err)
+        } else {
+          $scope.$apply(function() {
+            if ($scope.rxStats) {
+              let elapsedTime = timestamp - $scope.rxStats.timestamp
+              let receivedBytes = (bytes - $scope.rxStats.bytes)
+              $scope.bitrate =  receivedBytes / elapsedTime  // byte/s
+            } else {
+              $scope.bitrate = 0
+            }
+
+            $scope.rxStats = {
+              bytes: bytes,
+              timestamp: timestamp
+            }
+            if (callback) {
+              callback()
+            }
+          })
+        }
+      })
+    }
+
     $scope.start = function () {
       console.log('starting...')
       $scope.started = true
       console.log('connected:', $scope.connected)
       console.log('mode:', $scope.configuration.mode)
 
-
-
       let afterWifiReadings
       if ($scope.configuration.mode === 'auto') {
-        // first bitrate reading
-        utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
-          if (err) {
-            console.log(err)
-          } else {
-            $scope.bytesAndTime = {
-              bytes: bytes,
-              timestamp: timestamp
-            }
-          }
-        })
         afterWifiReadings = function () {
-          // last bitrate reading
-          utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
-              let timestamp = Date.now()
-              if (err) {
-                console.log(err)
-              } else {
-                let bitrate = $scope.bytesAndTime.bytes * 1000 / (timestamp - $scope.bytesAndTime.timestamp)
-                $scope.$apply(() => {
-                  $scope.bitrate = Math.trunc(bitrate)
-                })
-              }
-            })
             //console.log('(mainCtrl) after wifi?')
           $scope.currentPosition.next($scope.rows, $scope.columns)
         }
       } else {
         afterWifiReadings = function () {
-          utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
-            let timestamp = Date.now()
-            if (err) {
-              console.log(err)
-            } else {
-              let bitrate = $scope.bytesAndTime.bytes * 1000 / (timestamp - $scope.bytesAndTime.timestamp)
-              $scope.$apply(() => {
-                $scope.bitrate = Math.trunc(bitrate)
-              })
-            }
-          })
           resetAntennaPosition(500)
         }
       }
@@ -628,20 +595,6 @@ angular.module('MainApp')
             return scope.antennaPosition
           }, (newValue, oldValue) => {
             if (newValue) {
-              // First bittrate reading (before start wifiReadins and then after
-              utils.getReceiveTransmitStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
-                  if (err) {
-                    console.log(err)
-                  } else {
-                    console.log(receive)
-                    console.log(transmit)
-                    console.log(new Date(timestamp))
-                    $scope.pbsCheck = {
-                      bytes: receive.bytes,
-                      timestamp: timestamp
-                    }
-                  }
-                })
                 // timeout, delay, readings, filePath, callback)
               wifiReadings(1500, $scope.configuration.readingDelay, $scope.configuration.numberOfReadings, afterWifiReadings)
             }

@@ -130,12 +130,12 @@ class Position {
 }
 
 class NetStats {
-  constructor(signal, noise, tx, rx) {
+  constructor(signal, noise, rx, tx) {
     this.signal = signal
     this.noise = noise
     this.bitrate = {
-      tx,
-      rx
+      rx,
+      tx
     }
     this.timeStamp = Date.now()
   }
