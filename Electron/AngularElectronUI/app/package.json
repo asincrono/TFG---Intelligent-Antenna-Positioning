@@ -4,6 +4,7 @@
   "main": "main.js",
   "description": "Web interface to control Arduino based WiFi antenna positioning device",
   "devDependencies": {
+    "electron-rebuild": "^1.1.5",
     "gulp": "^3.9.1"
   },
   "dependencies": {
