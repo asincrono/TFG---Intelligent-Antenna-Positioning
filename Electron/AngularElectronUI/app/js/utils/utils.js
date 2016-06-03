@@ -192,7 +192,11 @@ function parseLinux(device, data) {
     line.includes(device)
   })
 
-  let values = line.slice(1).split(/\s+/)
+  let values = line.split(/\s+/)
+  if (values[0] === '') {
+    values.splice(0, 1)
+  }
+
   let level = parseInt(rTrim(values[3], '.'))
   let noise = parseInt(rTrim(values[4], '.'))
   return new NetStats(level, noise)
