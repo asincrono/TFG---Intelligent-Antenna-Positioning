@@ -133,7 +133,7 @@ angular.module('MainApp')
 
       //data.addColumn('string', 'Position')
       data.addColumn('number', 'Position')
-      data.addColumn('number', 'Signal', 'signal')
+      data.addColumn('number', 'Level', 'level')
       data.addColumn('number', 'Noise', 'noise')
 
       let chart = new google.visualization.LineChart(document.getElementById('linechart'))
@@ -167,7 +167,7 @@ angular.module('MainApp')
 
       $scope.data = new google.visualization.DataTable()
       $scope.data.addColumn('number', 'Position')
-      $scope.data.addColumn('number', 'Signal', 'signal')
+      $scope.data.addColumn('number', 'Level', 'level')
       $scope.data.addColumn('number', 'Noise', 'noise')
       // bitrate?
       $scope.data.addColumn('number', 'Bitrate', 'bitrate')
@@ -195,9 +195,9 @@ angular.module('MainApp')
           if (newValue) {
             if ($scope.chart) {
               console.log('AntennaPosition(graphCtrl)', $scope.antennaPosition)
-              //updateGraph([$scope.antennaPosition.toString(), newValue.signal, newValue.noise])
+              //updateGraph([$scope.antennaPosition.toString(), newValue.level, newValue.noise])
               console.log('pos:', $scope.antennaPosition, 'number:', positionToNumber($scope.antennaPosition, $scope.rows))
-              updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.signal, newValue.noise])
+              updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.noise])
             }
           }
         }, true)

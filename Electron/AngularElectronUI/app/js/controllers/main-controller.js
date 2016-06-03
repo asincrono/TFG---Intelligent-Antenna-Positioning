@@ -282,19 +282,19 @@ angular.module('MainApp')
     // Callback will be called after all readings done.
 
     function genMeanNetStats(netStatsList) {
-      let meanSignal = 0
+      let meanLevel = 0
       let meanNoise = 0
       let numStats = netStatsList.length
 
       netStatsList.forEach((stat, idx, stats) => {
-        meanSignal += stat.signal
+        meanLevel += stat.level
         meanNoise += stat.noise
       })
 
       // Sorry for this but it's so cute :)
-      meanSignal /= numStats
+      meanLevel /= numStats
       meanNoise /= numStats
-      return new utils.NetStats(meanSignal, meanNoise)
+      return new utils.NetStats(meanLevel, meanNoise)
     }
 
     function wifiReadings(timeout, delay, readings, callback) {

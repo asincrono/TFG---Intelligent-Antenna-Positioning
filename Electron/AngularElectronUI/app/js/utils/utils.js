@@ -131,7 +131,7 @@ class Position {
 
 class NetStats {
   constructor(signal, noise, rx, tx) {
-    this.signal = signal
+    this.level = signal
     this.noise = noise
     this.bitrate = {
       rx,
@@ -141,7 +141,7 @@ class NetStats {
   }
 
   updateStats(stats) {
-    this.signal = stats.signal
+    this.level = stats.level
     this.noise = stats.noise
     this.bitrate = stats.bitrate
     this.timeStamp = Date.now()
@@ -156,7 +156,7 @@ class AntennaPosition extends Position {
   }
 
   setStats(stats) {
-    this.stats.signal = stats.signal
+    this.stats.level = stats.level
     this.stats.noise = stats.noise
   }
 
@@ -173,11 +173,11 @@ class AntennaPosition extends Position {
   }
 
   clone() {
-    return new AntennaPosition(this.x, this.y, this.stats.signal, this.stats.noise)
+    return new AntennaPosition(this.x, this.y, this.stats.level, this.stats.noise)
   }
 
   appendFile(file) {
-    let data = `${new Date(this.stats.timeStamp).toLocaleString()}, ${this.x}, ${this.y}, ${this.stats.signal}, ${this.stats.noise}\n`
+    let data = `${new Date(this.stats.timeStamp).toLocaleString()}, ${this.x}, ${this.y}, ${this.stats.level}, ${this.stats.noise}\n`
     fs.appendFile(file, data, (err) => {
       if (err) {
         console.log('Error writing antenna position to file"', file, '"', err)
