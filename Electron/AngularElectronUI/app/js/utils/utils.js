@@ -190,16 +190,19 @@ function parseLinux(device, data) {
   let lines = data.split('\n')
   let line = lines.filter((line) => {
     line.includes(device)
-  })
+  })[0]
 
-  let values = line.split(/\s+/)
-  if (values[0] === '') {
-    values.splice(0, 1)
+  if (line) {
+    let values = line.split(/\s+/)
+    if (values[0] === '') {
+      values.splice(0, 1)
+    }
+    let level = parseInt(rTrim(values[3], '.'))
+    let noise = parseInt(rTrim(values[4], '.'))
+    return new NetStats(level, noise)
+  } else {
+    throw new Error(`Device "${device}" not found.`)
   }
-
-  let level = parseInt(rTrim(values[3], '.'))
-  let noise = parseInt(rTrim(values[4], '.'))
-  return new NetStats(level, noise)
 }
 
 function parseDarwin(data) {
@@ -351,6 +354,7 @@ function getRx(device, callback) {
       let line = lines.filter((line) => {
         return line.includes(device)
       })[0]
+
       if (line) {
         let values = line.split(/\s+/)
         if (values[0] === '') {
