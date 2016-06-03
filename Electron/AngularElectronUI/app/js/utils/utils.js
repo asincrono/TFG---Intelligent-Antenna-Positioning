@@ -187,10 +187,11 @@ class AntennaPosition extends Position {
 }
 
 function parseLinux(device, data) {
-  console.log('readed "/proc/net/wirelss"?:', data)
   let lines = data.split('\n')
 
   let line = lines.filter((line) => {
+    console.log(`Line "${line}".`)
+    console.log(`Looking for "${device}".`)
     line.includes(device)
   })[0]
 
