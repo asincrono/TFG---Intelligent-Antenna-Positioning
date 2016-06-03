@@ -130,8 +130,8 @@ class Position {
 }
 
 class NetStats {
-  constructor(signal, noise, rx, tx) {
-    this.level = signal
+  constructor(level, noise, rx, tx) {
+    this.level = level
     this.noise = noise
     this.bitrate = {
       rx,
@@ -189,22 +189,22 @@ class AntennaPosition extends Position {
 function parseLinux(data) {
   let line = data.split('\n')[2]
   let values = line.split(/\s+/)
-  let signal = parseInt(rTrim(values[3], '.'))
+  let level = parseInt(rTrim(values[3], '.'))
   let noise = parseInt(rTrim(values[4], '.'))
-  return new NetStats(signal, noise)
+  return new NetStats(level, noise)
 }
 
 function parseDarwin(data) {
-  let signal = parseInt(data.match(/agrCtlRSSI: (\-\d+)/)[1])
+  let level = parseInt(data.match(/agrCtlRSSI: (\-\d+)/)[1])
   let noise = parseInt(data.match(/agrCtlNoise: (\-\d+)/)[1])
-  return new NetStats(signal, noise)
+  return new NetStats(level, noise)
 }
 
 function getNetStats(callback) {
   switch (os.platform()) {
     case 'darwin':
       {
-        exec(DARWIN_AIRPORT_CMD, (err, stdout, stderr) => {
+        execFile(DARWIN_AIRPORT_CMD, (err, stdout, stderr) => {
           if (err) {
             console.log(err, stderr)
           } else {
@@ -244,16 +244,6 @@ function rTrim(str, char) {
 function lTrim(str, char) {
   let re = new RegExp(`^[${char}]+`)
   return str.replace(re, '')
-}
-
-function testLs(callback) {
-  exec('ls', ['-la', '/'], (err, stdout, stderr) => {
-    if (err != null) {
-      callback(null)
-    } else {
-      callback(stdout.toString())
-    }
-  })
 }
 
 function trimParenthesis(str) {
@@ -423,7 +413,6 @@ exports.Position = Position
 exports.AntennaPosition = AntennaPosition
 exports.NetStats = NetStats
 exports.listIfaces = listIfaces
-exports.testLs = testLs
 exports.getNetStats = getNetStats
 exports.getReceiveTransmitStats = getReceiveTransmitStats
 exports.getRx = getRx
