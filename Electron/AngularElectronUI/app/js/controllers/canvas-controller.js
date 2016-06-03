@@ -125,6 +125,7 @@ angular.module('MainApp').controller('CanvasController', ['$scope', function ($s
 
   /* Had to add a timeout cause if two animations overlap would trigger -=> HELVETICA SCENARIO!!!*/
   function moveSquare(square, matrix, row, col, ctx, timeout) {
+    console.log('(canvasCtrl) at moveSquare')
     let yD = (row) * matrix.width + matrix.thickness
     let xD = (col) * matrix.height + matrix.thickness
     let animFunc = () => {
@@ -144,8 +145,9 @@ angular.module('MainApp').controller('CanvasController', ['$scope', function ($s
     } else {
       window.requestAnimationFrame(animFunc)
     }
+    console.log('(canvasCtrl) leaving moveSquare')
   }
-  
+
   function init() {
     // x, y, rows, columns, width, height, thickness, color) {
     $scope.matrix = new Matrix(0, 0, 5, 5, 30, 30, 1, 'rgba(0, 0, 0, 0.50)', 1)
@@ -175,10 +177,10 @@ angular.module('MainApp').controller('CanvasController', ['$scope', function ($s
         console.log('(canvasCtrl) Initializing: $scope.antennaPosition=', $scope.currentPosition)
       }
     }, true)
-    
-    
+
+
     $scope.deregistrationList.push(deregistrate)
   }
-  
+
   init()
 }])

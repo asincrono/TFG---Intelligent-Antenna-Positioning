@@ -124,7 +124,7 @@ angular.module('MainApp')
 
 
       let t = utils.leftPad(args.tolerance ? args.tolerance : TOLERANCE, 2, '0')
-      let bS = utils.leftPad(args.baseSpeed ? args.baseSpeed : BASE_SPEED, 3, '0')
+      let bS = utils.leftPad(args.baseSpeed ? args.baseSpeed : MOTOR_SPEED, 3, '0')
       let mS = utils.leftPad(args.maxSpeed ? args.maxSpeed : BASE_SPEED, 3, '0')
       let pD = utils.leftPad(args.pollDelay ? args.pollDelay : POLL_DELAY, 3, '0')
       let mT = utils.leftPad(args.maxTries ? args.maxTries : MAX_TRIES, 3, '0')
@@ -142,8 +142,6 @@ angular.module('MainApp')
       rows = rows ? rows : DEFAULTS.rows
       columns = columns ? columns : DEFAULTS.columns
       tolerance = tolerance ? tolerance : DEFAULTS.systemTolerance
-
-      console.log(rows, columns, tolerance)
 
       if (coords.length == 2) {
         let x = utils.percentCoordToDec(Number(coords[0]), tolerance, rows)
@@ -195,7 +193,7 @@ angular.module('MainApp')
             console.log('Failed to connect:', error)
             if ($scope.connectionTries < RECONNECT_MAX_TRIES) {
               $scope.connectionTries += 1
-              console.log(`Trying to connect: try ${$scope.connectionTries} in ${RECONNECT_TIMEOUT/1000} seconds.`)
+              console.log(`Trying to connect: try ${$scope.connectionTries} in ${RECONNECT_TIMEOUT / 1000} seconds.`)
 
               $timeout(() => {
                 connect(addr, dataCallback, afterCallback)
@@ -218,22 +216,6 @@ angular.module('MainApp')
         console.log('Already connected.')
       }
     }
-
-
-    let dataCallback = function (data) {
-      // Function to react to received data.
-      console.log('Readed:', data)
-      if ($scope.started) {
-        // We need to process the answer from Arduino
-        $scope.$apply(() => {
-          $scope.antennaPosition = parseArduinoMsg(data, $scope.rows, $scope.columns)
-          // When we reach a new position we make a bitrate checkpoit
-          checkBitrate()
-          console.log('Antenna position:', $scope.antennaPosition)
-        })
-      }
-    }
-
 
     function disconnect() {
       if ($scope.port && $scope.port.isOpen()) {
