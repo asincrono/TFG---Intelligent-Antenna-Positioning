@@ -290,6 +290,7 @@ angular.module('MainApp')
         then we set the scope netstas value.
         */
         checkBitrate(() => {
+          console.log('(mainCtrl) checkBitrate-callback changing $scope.nestStats.')
           netStats.bitrate.rx = $scope.bitrate
           $scope.netStats = netStats
         } )
@@ -526,15 +527,21 @@ angular.module('MainApp')
 
     function checkBitrate(callback) {
       utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
+        console.log('(mainCtrl) at checkBitrate.')
         if (err) {
           console.log(err)
         } else {
           $scope.$apply(function() {
             if ($scope.rxStats) {
+              console.log('(mainCtrl) checkBitrate rxStats:', $scope.rxStats)
               let elapsedTime = timestamp - $scope.rxStats.timestamp
+              console.log('(mainCtrl) elapsedTime:', elapsedTime)
               let receivedBytes = (bytes - $scope.rxStats.bytes)
-              $scope.bitrate =  receivedBytes / elapsedTime  // byte/s
+              console.log('(mainCtrl) receivedBytes:', receivedBytes)
+              $scope.bitrate =  receivedBytes * 1000 / elapsedTime  // byte/s
+              console.log('(mainCtrl) ($scope.)bitrate:', $scope.bitrate)
             } else {
+              console.log('(mainCtrl) checkBitrate rxStats was undefined')
               $scope.bitrate = 0
             }
 
@@ -543,6 +550,7 @@ angular.module('MainApp')
               timestamp: timestamp
             }
             if (callback) {
+              console.log('(mainCtrl) checkBitrate calling callback.')
               callback()
             }
           })
