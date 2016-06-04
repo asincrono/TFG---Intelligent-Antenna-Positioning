@@ -46,7 +46,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
   }
 
   function cleanWatchers() {
-    watchList.forEeach((watch) => {
+    watchList.forEach((watch) => {
       watch.deregister()
     })
 
