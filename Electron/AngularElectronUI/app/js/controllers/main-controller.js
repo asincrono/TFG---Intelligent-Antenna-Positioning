@@ -404,9 +404,6 @@ angular.module('MainApp')
 
         $scope.maxPositions = $scope.rows * $scope.columns
 
-        //      $scope.currentPosition
-        //      $scope.antennaPosition
-        //      $scope.netStats
 
         $scope.positionWithStats = undefined
         $scope.tempStats = undefined
@@ -594,7 +591,7 @@ angular.module('MainApp')
         })
       }
 
-      $scope.start = function() {
+      self.start = function start() {
         console.log('starting...')
         $scope.started = true
         console.log('connected:', $scope.connected)
@@ -613,7 +610,7 @@ angular.module('MainApp')
         } else {
           afterWifiReadings = function() {
             resetAntennaPosition(500)
-            $scope.stop()
+            stop()
           }
         }
 
@@ -660,7 +657,7 @@ angular.module('MainApp')
                     // We reached the end of the cicle
                     console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
                     resetAntennaPosition(1500)
-                    $scope.stop()
+                    stop()
                   }
                 },
                 true,
@@ -679,19 +676,17 @@ angular.module('MainApp')
         }
       }
 
-      $scope.stop = function() {
+      self.stop = function stop() {
         // Stop curl executor
         $scope.executor.quit()
 
         // Deregistrate watchers.
         WatcherTracker.cleanWatchers()
-        disconnect()
+        //disconnect()
 
         $scope.started = false
       }
 
-
       init()
-
     }
   ])
