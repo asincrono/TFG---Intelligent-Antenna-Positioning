@@ -1,5 +1,6 @@
 {
   "asi": true,
   "node": true,
+  "multistr": true,
   "esversion": 6
 }

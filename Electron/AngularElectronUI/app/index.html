@@ -30,7 +30,8 @@
     <div layout="row" layout-align="center">
       <div layout="column" class="control-div" flex>
         <div layout="row" class="button-div">
-          <md-button class="md-raised md-primary" ng-disabled="started" ng-click="start()">Start</md-button>
+          <!--  Start should be enable if !started AND connected-->
+          <md-button class="md-raised md-primary" ng-disabled="started || !connected" ng-click="start()">Start</md-button>
 <!--          <md-button class="md-raised md-primary" ng-click="test()">Start</md-button>-->
           <md-button class="md-raised md-warn" ng-disabled="!started" ng-click="stop()">Stop</md-button>
         </div>

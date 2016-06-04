@@ -1,5 +1,8 @@
 'use strict'
 
+const fs = require('fs')
+const os = require('os')
+
 const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
 framework/Versions/Current/Resources/airport -I'
 
@@ -12,6 +15,8 @@ const LINUX_PROC_PATH = ''
   // const LINUX_NMCLI_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
 const WINDOWS_NETSH_CMD = ''
 const WINDOWS_NETSH_ARGS = ''
+
+const {execFile} = require('child_process')
 
 class Position {
   constructor(x, y) {
@@ -121,7 +126,7 @@ class Position {
     xMax = xMax ? xMax : 100
     yMin = yMin ? yMin : 0
     yMax = yMax ? yMax : 100
-    return new Postion(Utils.rand(xMin, xMax), Utils.rand(yMin, yMax))
+    return new Position(rand(xMin, xMax), rand(yMin, yMax))
   }
 
   toString() {
@@ -263,7 +268,7 @@ function trimParenthesis(str) {
 }
 
 function decCoordToPercent(x, slices) {
-  if (x == 0) {
+  if (x === 0) {
     return 0
   }
   if (x > slices) {
@@ -396,26 +401,32 @@ function getTx(device, callback) {
 }
 
 class Executor {
-  constructor(cmd, args) {
+  constructor(cmd, args, cb) {
     this.cmd = cmd
     this.args = args
-    let obj = this
+    this.cb = cb
+    this.child = null
+  }
 
-    let callback = function (err, stdout, stderr) {
-      if (err) {
-        console.log(err)
-      } else {
-        if (stdout) {
-          console.log(stdout)
-          obj.child = execFile(cmd, args, callback)
-        }
-        if (stderr) {
-          console.log(stderr)
-        }
+  callback(err, stdout, stderr) {
+    if (err) {
+      console.log(err)
+      if (this.cb) {
+        this.cb(err)
       }
-    }
+    } else if (stdout) {
+        console.log(stdout)
+        if (this.cb) {
+          this.cb(null, stdout, stderr)
+        }
+        this.run()
+      } else if (stderr) {
+        this.cb(null, null, stderr)
+      }
+  }
 
-    this.child = execFile(cmd, args, callback)
+  run() {
+    this.child = execFile(this.cmd, this.args, this.callback.bind(this))
   }
 
   quit() {

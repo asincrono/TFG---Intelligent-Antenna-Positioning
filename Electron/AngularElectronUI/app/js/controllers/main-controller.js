@@ -2,6 +2,9 @@
 
 angular.module('MainApp')
   .controller('MainController', ['$scope', '$timeout', '$interval', 'NetStats', 'ArduinoComm', function ($scope, $timeout, $interval, NetStats, ArduinoComm) {
+    const usbDetect = require('usb-detection')
+    const path = require('path')
+
     const PLATFORM = os.platform()
 
     const MSG_MOVE_XY_CODE = 0
@@ -21,7 +24,7 @@ angular.module('MainApp')
     const POLL_DELAY = 15
     const MAX_TRIES = 100
 
-    const URL = 'ftp://192.168.0.1/TFG/rnd_file_5GB.data'
+    const URL = 'ftp://192.168.0.1/TFG/rnd_file_10MB.data'
     const USER = 'tfg'
     const PASS = 'tfg'
     const CURL_CMD = 'curl'
@@ -459,7 +462,19 @@ angular.module('MainApp')
       })
 
       // Initiate the curl command data transmission
-
+      $scope.excutor = new utils.Executor(CURL_CMD, CURL_ARGS, (err, stdout, stderr) => {
+        if (err) {
+          console.log(err)
+        } else {
+          if (stdout) {
+            console.log('curl stdout:', stdout)
+          }
+          if (stderr) {
+            console.log('curl stderr:', stderr)
+          }
+        }
+      })
+      $scope.executor.run()
       // First bitrate check.
       checkBitrate()
 
@@ -632,12 +647,13 @@ angular.module('MainApp')
     }
 
     $scope.stop = function () {
+      // Stop curl executor
+      $scope.executor.quit()
       // Deregistrate watchers.
       $scope.deregistrationList.forEach((value, idx, arr) => {
         value()
       })
       $scope.deregistrationList = []
-
       disconnect()
 
       $scope.started = false
