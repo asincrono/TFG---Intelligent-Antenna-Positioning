@@ -22,7 +22,7 @@ angular.module('MainApp')
       const PORT_ADDR = '/dev/cu.usbmodem1431'
       const BAUD_RATE = 9600
       const TOLERANCE = 5
-      const MOTOR_SPEED = 185
+      const MOTOR_SPEED = 200
       const POLL_DELAY = 15
       const MAX_TRIES = 100
 
