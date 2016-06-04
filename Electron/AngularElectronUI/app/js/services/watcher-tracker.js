@@ -39,7 +39,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
     })
   }
 
-  function startWarchers() {
+  function startWatchers() {
     watchList.forEach((watch) => {
       watch.register()
     })
