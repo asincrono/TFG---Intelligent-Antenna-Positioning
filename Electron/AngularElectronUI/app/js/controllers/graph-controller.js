@@ -184,6 +184,11 @@ angular.module('MainApp')
       })
 
       google.charts.setOnLoadCallback(initChart)
+
+      // Setting up a persisten watcher.
+      /* A persisten watcher is one that won't be removed if you start the app
+      again (start isn't the same as reload or restart)
+      Watchers in init usually are persistent */
       WatcherTracker.registerWatcher($scope,
         (scope) => {
           return scope.netStats
@@ -200,6 +205,7 @@ angular.module('MainApp')
             }
           }
         },
+        true,
         true
       )
     }

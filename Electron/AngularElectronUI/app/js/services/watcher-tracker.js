@@ -1,21 +1,62 @@
 angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFactory () {
   'use strict'
-  let warcherDeregistrationFunctionList = []
+  class Watch {
+    constructor(watcherFunc, persistent) {
+      this.watcherFunc = watcherFunc
+      this.watcherDeregFunc = null
+      this.persistent = persistent
+    }
 
-  function registerWatcher(scope, toWatch, toDo, deepCheck) {
-    let watcherDeregFunc = scope.$watch(toWatch, toDo, deepCheck)
-    warcherDeregistrationFunctionList.push(watcherDeregFunc)
+    register() {
+      if (!this.registered) {
+        this.watcherDeregFunc = this.watcherFunc()
+      }
+    }
+
+    deregister() {
+      if (this.registered) {
+        this.watcherDeregFunc()
+      }
+    }
+  }
+
+  let watchList = []
+
+  function registerWatcher(scope, toWatch, toDo, deepCheck, persistent) {
+    let watcherFunc = function() {
+      return scope.$watch(toWatch, toDo, deepCheck)
+    }
+    let watch = new Watch(watcherFunc, persistent)
+
+    watch.register()
+
+    watchList.push(watch)
+  }
+
+  function stopWatchers() {
+    watchList.forEach((watch) => {
+      watch.deregister()
+    })
+  }
+
+  function startWarchers() {
+    watchList.forEach((watch) => {
+      watch.register()
+    })
   }
 
   function cleanWatchers() {
-    watcherDeregistrationFunctionList.forEach((deregFunc) => {
-      deregFunc()
+    watchList.forEeach((watch) => {
+      watch.deregister()
     })
-    watcherDeregistrationFunctionList = []
+
+    watchList = watchList.filter((watch) => {
+      return watch.persistent
+    })
   }
 
   function count() {
-    return watcherDeregistrationFunctionList.length
+    return watchList.length
   }
 
   return {

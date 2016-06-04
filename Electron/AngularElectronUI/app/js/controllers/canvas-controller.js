@@ -160,7 +160,8 @@ angular.module('MainApp').controller('CanvasController', ['$scope', 'WatcherTrac
     antennaPosition $scope property defined in the main controller. */
 
 
-      // Instead of using 'currentPosition' in watch I can use a function. It's kind of better.
+    // Instead of using 'currentPosition' in watch I can use a function. It's kind of better.
+    /* This will be a persisten watcher. Won't be removed at stop. */
     WatcherTracker.registerWatcher($scope,
       (scope) => {
         return scope.antennaPosition
@@ -176,7 +177,9 @@ angular.module('MainApp').controller('CanvasController', ['$scope', 'WatcherTrac
         } else {
           console.log('(canvasCtrl) Initializing: $scope.antennaPosition=', $scope.currentPosition)
         }
-      }, true)
+      },
+      true,
+      true)
 
 
 

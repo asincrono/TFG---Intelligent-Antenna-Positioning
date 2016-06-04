@@ -416,7 +416,8 @@ angular.module('MainApp')
 
         setDeviceSelectionMenu()
 
-        // Watch changes in positionWithStats -> save values to file.
+        // Watch changes in positionWithStats -> save values to file.ç
+        /* This watcher doesn't require deep check nor to be persistent */
         WatcherTracker.registerWatcher($scope,
           (scope) => {
             return scope.positionWithStats
@@ -425,7 +426,9 @@ angular.module('MainApp')
             if (newValue) {
               newValue.appendFile($scope.fileName)
             }
-          }
+          },
+          false,
+          false
         )
 
         // Actions to perform when data received from Arduino
@@ -598,6 +601,10 @@ angular.module('MainApp')
         console.log('connected:', $scope.connected)
         console.log('mode:', $scope.configuration.mode)
 
+        /* We restart the warcher in case needed. Watcher already registered
+        won't be registered again. */
+        WatcherTracker.startWatchers()
+
         let afterWifiReadings
         if ($scope.configuration.mode === 'auto') {
           afterWifiReadings = function() {
@@ -615,7 +622,7 @@ angular.module('MainApp')
           // Watch changes in antennaPosition -> trigger wifi readings.
           /* Once Arduino tells us there is a new position ( -> change in
           antennaPosition) we do our readings*/
-          WatcherTracker.egisterWatcher($scope,
+          WatcherTracker.registerWatcher($scope,
             (scope) => {
               return scope.antennaPosition
             }, (newValue, oldValue) => {
@@ -623,17 +630,15 @@ angular.module('MainApp')
                 // timeout, delay, readings, filePath, callback)
                 wifiReadings(1500, $scope.configuration.readingDelay, $scope.configuration.numberOfReadings, afterWifiReadings)
               }
-            }
+            },
+            false,
+            false
           )
 
           switch ($scope.configuration.mode) {
             case 'auto':
               console.log('Starting in auto mode...')
-
-              //          let afterWifiReadigs = function () {
-              //            $scope.currentPosition.next($scope.rows, $scope.columns)
-              //          }
-
+              /* As this watcher will depend on the mode, won't be persistent */
               WatcherTracker.registerWatcher($scope,
                 (scope) => {
                   return scope.currentPosition
@@ -658,7 +663,10 @@ angular.module('MainApp')
                     resetAntennaPosition(1500)
                     $scope.stop()
                   }
-                }, true)
+                },
+                true,
+                false
+              )
                 // Start of the sequence.
               $scope.currentPosition = new utils.Position(0, 0)
               break
