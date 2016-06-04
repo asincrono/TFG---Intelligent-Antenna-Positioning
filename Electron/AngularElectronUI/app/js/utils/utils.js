@@ -1,20 +1,6 @@
 'use strict'
 
 const fs = require('fs')
-const os = require('os')
-
-const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
-framework/Versions/Current/Resources/airport -I'
-
-const DARWIN_NETSTAT_CMD = 'netstat'
-const LINUX_CAT_STATS_ARGS = ['/proc/net/wireless']
-const LINUX_CAT_CMD = 'cat'
-const LINUX_CAT_RXTX_ARGS = ['/proc/net/dev']
-const LINUX_PROC_PATH = ''
-  // const LINUX_NMCLI_CMD = 'nmcli'
-  // const LINUX_NMCLI_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
-const WINDOWS_NETSH_CMD = ''
-const WINDOWS_NETSH_ARGS = ''
 
 const {execFile} = require('child_process')
 
@@ -134,25 +120,6 @@ class Position {
   }
 }
 
-class NetStats {
-  constructor(level, noise, rx, tx) {
-    this.level = level
-    this.noise = noise
-    this.bitrate = {
-      rx,
-      tx
-    }
-    this.timeStamp = Date.now()
-  }
-
-  updateStats(stats) {
-    this.level = stats.level
-    this.noise = stats.noise
-    this.bitrate = stats.bitrate
-    this.timeStamp = Date.now()
-  }
-}
-
 /* Antenna position is a position with stats */
 class AntennaPosition extends Position {
   constructor(x, y, stats) {
@@ -217,42 +184,6 @@ function parseDarwin(data) {
   return new NetStats(level, noise)
 }
 
-function getNetStats(device, callback) {
-  switch (os.platform()) {
-    case 'darwin':
-      {
-        execFile(DARWIN_AIRPORT_CMD, (err, stdout, stderr) => {
-          if (err) {
-            console.log(err, stderr)
-          } else {
-            callback(parseDarwin(stdout))
-          }
-        })
-      }
-      break
-    case 'linux':
-      {
-        execFile(LINUX_CAT_CMD, LINUX_CAT_STATS_ARGS, (err, stdout, stderr) => {
-          if (err) {
-            console.log(err, stderr)
-          } else {
-            callback(parseLinux(device, stdout))
-          }
-        })
-      }
-      break
-  }
-}
-
-function listIfaces() {
-  let ifaces = os.networkInterfaces()
-  let ifNames = []
-  for (let ifName in ifaces) {
-    ifNames.push(ifName)
-  }
-  return ifNames
-}
-
 function rTrim(str, char) {
   let re = new RegExp(`[${char}]+$`)
   return str.replace(re, '')
@@ -265,31 +196,6 @@ function lTrim(str, char) {
 
 function trimParenthesis(str) {
   return str.replace(/[\(\)]/g, '')
-}
-
-function decCoordToPercent(x, slices) {
-  if (x === 0) {
-    return 0
-  }
-  if (x > slices) {
-    return undefined
-  }
-  let xStep = Math.floor(100 / slices)
-  return x * xStep
-}
-
-function percentCoordToDec(x, tol, steps) {
-  let step = 100 / (steps - 1)
-  let position = 0
-  for (let i = 0; i < steps; i += 1) {
-    position = i * step
-    if (Math.abs(position - x) <= tol) {
-      return i
-    } else if (x < position) {
-      throw new RangeError(`${x} isn't valid (tolerance: ${tol} nearest position: ${position}`)
-    }
-  }
-  return undefined
 }
 
 function leftPad(value, times, padChar) {
@@ -305,99 +211,6 @@ function rand(min, max) {
   max = max ? max : 10
 
   return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
-function getReceiveTransmitStats(device, callback) {
-  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
-    let timestap = Date.now()
-    if (err) {
-      callback(err)
-    } else {
-      let lines = stdout.split('\n')
-      let line = lines.filter((line) => {
-        return line.includes(device)
-      })[0]
-
-      if (line) {
-        let values = line.split(/\s+/)
-        if (values[0] === '') {
-          values.splice(0,1)
-        }
-
-        console.log('values:', values)
-        let receive = {
-          bytes: parseInt(values[1]),
-          packets: parseInt(values[2]),
-          errs: parseInt(values[3]),
-          drop: parseInt(values[4])
-        }
-
-        let transmit = {
-          bytes: parseInt(values[9]),
-          packets: parseInt(values[10]),
-          errs: parseInt(values[11]),
-          drop: parseInt(values[12])
-        }
-        callback(null, receive, transmit, timestap)
-      } else {
-        callback(new Error(`Device "${device}" not found.`))
-      }
-    }
-  })
-}
-
-/*
-Callback will recive err, bytes readed byt the device and the timestap for that
-read.
-*/
-function getRx(device, callback) {
-  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
-    let timestap = Date.now()
-    if (err) {
-      callback(err)
-    } else {
-      let lines = stdout.split('\n')
-      let line = lines.filter((line) => {
-        return line.includes(device)
-      })[0]
-
-      if (line) {
-        let values = line.split(/\s+/)
-        if (values[0] === '') {
-          values.splice(0,1)
-        }
-        let rx = parseInt(values[1])
-        callback(null, rx, timestap)
-      } else {
-        callback(new Error(`Device "${device}" not found.`))
-      }
-    }
-  })
-}
-
-function getTx(device, callback) {
-  execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
-    let timestap = Date.now()
-    if (err) {
-      callback(err)
-    } else {
-      let lines = stdout.split('\n')
-      let line = lines.filter((line) => {
-        return line.includes(device)
-      })[0]
-
-      if (line) {
-        let values = line.split(/\s+/)
-        if (values[0] === '') {
-          values.splice(0,1)
-        }
-        let tx = parseInt(values[9])
-        callback(null, tx, timestap)
-      } else {
-        callback(new Error(`Device "${device}" not found.`))
-      }
-    }
-  })
 }
 
 class Executor {
@@ -441,15 +254,7 @@ class Executor {
 exports.Executor = Executor
 exports.Position = Position
 exports.AntennaPosition = AntennaPosition
-exports.NetStats = NetStats
-exports.listIfaces = listIfaces
-exports.getNetStats = getNetStats
-exports.getReceiveTransmitStats = getReceiveTransmitStats
-exports.getRx = getRx
-exports.getTx = getTx
 exports.trimParenthesis = trimParenthesis
-exports.decCoordToPercent = decCoordToPercent
-exports.percentCoordToDec = percentCoordToDec
 exports.leftPad = leftPad
 exports.rightPad = rightPad
 exports.rand = rand

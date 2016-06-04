@@ -1,11 +1,13 @@
 'use strict'
 
 angular.module('MainApp')
-  .controller('MainController', ['$scope', '$timeout', '$interval', 'NetStats', 'ArduinoComm', function ($scope, $timeout, $interval, NetStats, ArduinoComm) {
+  .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', function ($scope, $timeout, $interval, NetInfo, ArduinoComm) {
     const usbDetect = require('usb-detection')
     const path = require('path')
+    const utils = require('./js/utils/utils.js')
+    const conversion = require('./js/utils/conversion.js')
 
-    const PLATFORM = os.platform()
+    const PLATFORM = require('os').platform()
 
     const MSG_MOVE_XY_CODE = 0
 
@@ -24,7 +26,7 @@ angular.module('MainApp')
     const POLL_DELAY = 15
     const MAX_TRIES = 100
 
-    const URL = 'ftp://192.168.0.1/TFG/rnd_file_10MB.data'
+    const URL = 'ftp://192.168.0.1/TFG/rnd_file_1GB.data'
     const USER = 'tfg'
     const PASS = 'tfg'
     const CURL_CMD = 'curl'
@@ -78,7 +80,7 @@ angular.module('MainApp')
         submenu: []
       }
 
-      let devices = utils.listIfaces()
+      let devices = NetInfo.listIfaces()
       let selected = false
       devices.forEach((device) => {
         // We select the first avaliable device
@@ -128,7 +130,7 @@ angular.module('MainApp')
 
       let t = utils.leftPad(args.tolerance ? args.tolerance : TOLERANCE, 2, '0')
       let bS = utils.leftPad(args.baseSpeed ? args.baseSpeed : MOTOR_SPEED, 3, '0')
-      let mS = utils.leftPad(args.maxSpeed ? args.maxSpeed : BASE_SPEED, 3, '0')
+      let mS = utils.leftPad(args.maxSpeed ? args.maxSpeed : MOTOR_SPEED, 3, '0')
       let pD = utils.leftPad(args.pollDelay ? args.pollDelay : POLL_DELAY, 3, '0')
       let mT = utils.leftPad(args.maxTries ? args.maxTries : MAX_TRIES, 3, '0')
       return `${motor}${percent}${t}${bS}${mS}${pD}${mT}\n`
@@ -147,8 +149,8 @@ angular.module('MainApp')
       tolerance = tolerance ? tolerance : DEFAULTS.systemTolerance
 
       if (coords.length == 2) {
-        let x = utils.percentCoordToDec(Number(coords[0]), tolerance, rows)
-        let y = utils.percentCoordToDec(Number(coords[1]), tolerance, columns)
+        let x = conversion.percentCoordToDec(Number(coords[0]), tolerance, rows)
+        let y = conversion.percentCoordToDec(Number(coords[1]), tolerance, columns)
         return new utils.Position(x, y)
       }
     }
@@ -310,7 +312,7 @@ angular.module('MainApp')
 
         $interval(() => {
           //console.log('Inside timmer function')
-          NetStats.getNetStats($scope.selectedDevice, (netStats) => {
+          NetInfo.getNetStats($scope.selectedDevice, (netStats) => {
             netStatsList.push(netStats)
             $scope.positionWithStats = new utils.AntennaPosition($scope.antennaPosition.x, $scope.antennaPosition.y, netStats)
           })
@@ -492,7 +494,7 @@ angular.module('MainApp')
 
     $scope.test = function () {
 
-      utils.getReceiveTransmitStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
+      NetInfo.getRxTxStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
           if (err) {
             console.log(err)
           } else {
@@ -541,7 +543,7 @@ angular.module('MainApp')
     }
 
     function checkBitrate(callback) {
-      utils.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
+      NetInfo.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
         console.log('(mainCtrl) at checkBitrate.')
         if (err) {
           console.log(err)
@@ -553,7 +555,8 @@ angular.module('MainApp')
               console.log('(mainCtrl) elapsedTime:', elapsedTime)
               let receivedBytes = (bytes - $scope.rxStats.bytes)
               console.log('(mainCtrl) receivedBytes:', receivedBytes)
-              $scope.bitrate =  Math.trunc(receivedBytes * 1000 / elapsedTime)  // byte/s
+              let bps = (receivedBytes * 8) * (elapsedTime / 1000)
+              $scope.bitrate =  conversion.bps2Kbps(bps)  // Kbyte/s
               console.log('(mainCtrl) ($scope.)bitrate:', $scope.bitrate)
             } else {
               console.log('(mainCtrl) checkBitrate rxStats was undefined')
