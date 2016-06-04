@@ -158,32 +158,6 @@ class AntennaPosition extends Position {
   }
 }
 
-function parseLinux(device, data) {
-  let lines = data.split('\n')
-
-  let line = lines.filter((line) => {
-    return line.includes(device)
-  })[0]
-
-  if (line) {
-    let values = line.split(/\s+/)
-    if (values[0] === '') {
-      values.splice(0, 1)
-    }
-    let level = parseInt(rTrim(values[3], '.'))
-    let noise = parseInt(rTrim(values[4], '.'))
-    return new NetStats(level, noise)
-  } else {
-    throw new Error(`Device "${device}" not found.`)
-  }
-}
-
-function parseDarwin(data) {
-  let level = parseInt(data.match(/agrCtlRSSI: (\-\d+)/)[1])
-  let noise = parseInt(data.match(/agrCtlNoise: (\-\d+)/)[1])
-  return new NetStats(level, noise)
-}
-
 function rTrim(str, char) {
   let re = new RegExp(`[${char}]+$`)
   return str.replace(re, '')
@@ -251,10 +225,12 @@ class Executor {
   }
 }
 
+exports.leftPad = leftPad
+exports.rightPad = rightPad
+exports.lTrim = lTrim
+exports.rTrim = rTrim
+exports.trimParenthesis = trimParenthesis
 exports.Executor = Executor
 exports.Position = Position
 exports.AntennaPosition = AntennaPosition
-exports.trimParenthesis = trimParenthesis
-exports.leftPad = leftPad
-exports.rightPad = rightPad
 exports.rand = rand
