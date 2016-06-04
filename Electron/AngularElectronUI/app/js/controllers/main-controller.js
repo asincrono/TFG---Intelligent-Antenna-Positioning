@@ -462,7 +462,7 @@ angular.module('MainApp')
       })
 
       // Initiate the curl command data transmission
-      $scope.excutor = new utils.Executor(CURL_CMD, CURL_ARGS, (err, stdout, stderr) => {
+      $scope.executor = new utils.Executor(CURL_CMD, CURL_ARGS, (err, stdout, stderr) => {
         if (err) {
           console.log(err)
         } else {
