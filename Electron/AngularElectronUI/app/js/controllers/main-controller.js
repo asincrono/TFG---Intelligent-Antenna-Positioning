@@ -1,5 +1,5 @@
 angular.module('MainApp')
-  .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', function ($scope, $timeout, $interval, NetInfo, ArduinoComm) {
+  .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', function($scope, $timeout, $interval, NetInfo, ArduinoComm) {
     'use strict'
     const usbDetect = require('usb-detection')
     const path = require('path')
@@ -52,14 +52,23 @@ angular.module('MainApp')
 
     const MSG_ARGS = {
       tolerance: TOLERANCE,
-      motorSpeed: MOTOR_SPEED,
+      motorSpeed: DEFAULTS.motorSpeed,
+      motorBaseSpeed: DEFAULTS.motorBaseSpeed,
       pollDelay: POLL_DELAY,
       maxTries: MAX_TRIES
     }
 
     const MSG_ARGS_TESTING = {
       tolerance: 5,
-      baseSpeed: 185,
+      baseSpeed: 190,
+      maxSpeed: 200,
+      pollDelay: 15,
+      maxTries: 50
+    }
+
+    const MSG_ARGS_MOTOR_X = {
+      tolerance: 5,
+      baseSpeed: 175,
       maxSpeed: 200,
       pollDelay: 15,
       maxTries: 50
@@ -171,14 +180,23 @@ angular.module('MainApp')
       })
     }
 
-    function registrateWatcher(toWatch, toDo, deep) {
-      let registrateWatcher = function () {
-        return $scope.$watch(toWatch, toDo, deep)
+    function registrateWatcher(toWatch, toDo, deepCheck) {
+      let watcher = $scope.$watch(toWatch, toDo, deepCheck)
+      if (watcherList) {
+        $scope.watcherDeregistrationList.push(watcher)
+      } else {
+        $scope.watcherDeregistrationList = [watcher]
       }
-      $scope.registrationList.push(registrateWatcher)
-
-      let deregstrateWatcher = registrateWatcher()
     }
+
+    // function registrateWatcher(toWatch, toDo, deep) {
+    //   let registrateWatcher = function() {
+    //     return $scope.$watch(toWatch, toDo, deep)
+    //   }
+    //   $scope.registrationList.push(registrateWatcher)
+    //
+    //   let deregstrateWatcher = registrateWatcher()
+    // }
 
     function parsePosition(positionStr) {
       let x = 0
@@ -195,7 +213,7 @@ angular.module('MainApp')
     function connect(addr, dataCallback, afterCallback) {
       if ($scope.port === undefined || !$scope.port.isOpen()) {
 
-        let openCallback = function (error) {
+        let openCallback = function(error) {
           if (error) {
             console.log('Failed to connect:', error)
             if ($scope.connectionTries < RECONNECT_MAX_TRIES) {
@@ -289,18 +307,18 @@ angular.module('MainApp')
     function wifiReadings(timeout, delay, readings, callback) {
       let netStatsList = []
 
-      let afterReadings = function () {
+      let afterReadings = function() {
         //console.log('afterReadings')
         //console.log('callback =', callback)
         let netStats = genMeanNetStats(netStatsList)
-        /* Afther this checkBitrate we modify bitrate in the netStats and
-        then we set the scope netstas value.
-        */
+          /* Afther this checkBitrate we modify bitrate in the netStats and
+          then we set the scope netstas value.
+          */
         checkBitrate(() => {
           console.log('(mainCtrl) checkBitrate-callback changing $scope.nestStats.')
           netStats.bitrate.rx = $scope.bitrate
           $scope.netStats = netStats
-        } )
+        })
 
         callback(netStatsList)
       }
@@ -327,10 +345,10 @@ angular.module('MainApp')
 
     function moveAntennaX(pos, steps, timeout) {
       //console.log('moving X')
-      let msg = genMMsg(MOTOR_X_CODE, pos, steps, MSG_ARGS_TESTING)
+      let msg = genMMsg(MOTOR_X_CODE, pos, steps, MSG_ARGS_MOTOR_X)
         //console.log('moving x msg:', msg)
       if (timeout) {
-        $timeout(function () {
+        $timeout(function() {
           sendMsg(msg)
         }, timeout)
       } else {
@@ -343,7 +361,20 @@ angular.module('MainApp')
       let msg = genMMsg(MOTOR_Y_CODE, pos, steps, MSG_ARGS_MOTOR_Y)
         //console.log('moving y msg:', msg)
       if (timeout) {
-        $timeout(function () {
+        $timeout(function() {
+          sendMsg(msg)
+        }, timeout)
+      } else {
+        sendMsg(msg)
+      }
+    }
+
+    function moveAntennaXY(position, steps, timeout) {
+      let msg = genMXYMsg(position, $scope.rows, $scope.columns, MSG_ARGS)
+      console.log('moving antenna to', position.toString())
+
+      if (timeout) {
+        $timeout(function() {
           sendMsg(msg)
         }, timeout)
       } else {
@@ -357,7 +388,7 @@ angular.module('MainApp')
       console.log('reset antenna position msg:', msg)
 
       if (timeout) {
-        $timeout(function () {
+        $timeout(function() {
           sendMsg(msg)
         }, timeout)
       } else {
@@ -371,8 +402,7 @@ angular.module('MainApp')
       // Every time we stablish a watcher we add it's returned deregistration
       // function to the list.
       // Specially in the nested controllers.
-      $scope.deregistrationList = []
-      $scope.registrationList = []
+      $scope.watcherList = []
 
       // Configuration
       $scope.configuration = {
@@ -415,21 +445,21 @@ angular.module('MainApp')
       )
 
       // Actions to perform when data received from Arduino
-      let afterDataCallback = function (data) {
+      let afterDataCallback = function(data) {
         // Function to react to received data.
         console.log('Readed:', data)
         if ($scope.started) {
           // We need to process the answer from Arduino
           $scope.$apply(() => {
             $scope.antennaPosition = parseArduinoMsg(data, $scope.rows, $scope.columns)
-            // When we reach a new position we make a bitrate checkpoit
+              // When we reach a new position we make a bitrate checkpoit
             checkBitrate()
             console.log('Antenna position:', $scope.antennaPosition)
           })
         }
       }
 
-      let afterConnectCallback = function (error) {
+      let afterConnectCallback = function(error) {
         if (!error) {
           $scope.port.on('close', (err) => {
             console.log('CLOSED FOR BUSINESS!')
@@ -479,7 +509,7 @@ angular.module('MainApp')
         }
       })
       $scope.executor.run()
-      // First bitrate check.
+        // First bitrate check.
       checkBitrate()
 
       //       Try to connect
@@ -494,7 +524,7 @@ angular.module('MainApp')
       $scope.saveWiFiReadingsFilePath = genTimestampedFileName('Data', 'wifi_stats', 'data')
     }
 
-    $scope.test = function () {
+    $scope.test = function() {
 
       NetInfo.getRxTxStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
           if (err) {
@@ -558,7 +588,7 @@ angular.module('MainApp')
               let receivedBytes = (bytes - $scope.rxStats.bytes)
               console.log('(mainCtrl) receivedBytes:', receivedBytes)
               let bps = (receivedBytes * 8) * (elapsedTime / 1000)
-              $scope.bitrate =  conversion.bps2Kbps(bps)  // Kbyte/s
+              $scope.bitrate = conversion.bps2Kbps(bps) // Kbyte/s
               console.log('(mainCtrl) ($scope.)bitrate:', $scope.bitrate)
             } else {
               console.log('(mainCtrl) checkBitrate rxStats was undefined')
@@ -578,7 +608,7 @@ angular.module('MainApp')
       })
     }
 
-    $scope.start = function () {
+    $scope.start = function() {
       console.log('starting...')
       $scope.started = true
       console.log('connected:', $scope.connected)
@@ -586,13 +616,14 @@ angular.module('MainApp')
 
       let afterWifiReadings
       if ($scope.configuration.mode === 'auto') {
-        afterWifiReadings = function () {
-            //console.log('(mainCtrl) after wifi?')
+        afterWifiReadings = function() {
+          //console.log('(mainCtrl) after wifi?')
           $scope.currentPosition.next($scope.rows, $scope.columns)
         }
       } else {
-        afterWifiReadings = function () {
+        afterWifiReadings = function() {
           resetAntennaPosition(500)
+          $scope.stop()
         }
       }
 
@@ -605,7 +636,7 @@ angular.module('MainApp')
             return scope.antennaPosition
           }, (newValue, oldValue) => {
             if (newValue) {
-                // timeout, delay, readings, filePath, callback)
+              // timeout, delay, readings, filePath, callback)
               wifiReadings(1500, $scope.configuration.readingDelay, $scope.configuration.numberOfReadings, afterWifiReadings)
             }
           }
@@ -625,6 +656,7 @@ angular.module('MainApp')
               console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
               if (newValue) {
                 if (newValue.x === 0 && newValue.y === 0) {
+                  // We ensure that we start at X = 0, y = 0
                   resetAntennaPosition(500)
                 } else if (oldValue) {
                   if (newValue.x != oldValue.x) {
@@ -634,11 +666,16 @@ angular.module('MainApp')
                     //console.log('Moving Y to', newValue.y)
                     moveAntennaY(newValue.y, $scope.columns)
                   }
-                } else {
-                  resetAntennaPosition(500)
                 }
+              } else {
+                // We reached the end of the cicle
+                console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
+                resetAntennaPosition(1500)
+                $scope.stop()
               }
             }, true)
+            // Start of the sequence.
+            $scope.currentPosition = new utils.Position(0, 0)
             break
           case 'manual':
             console.log('starting in manual...')
@@ -648,28 +685,21 @@ angular.module('MainApp')
         }
 
       }
-      $scope.currentPosition = new utils.Position(0, 0)
     }
 
-    $scope.stop = function () {
+    $scope.stop = function() {
       // Stop curl executor
       $scope.executor.quit()
+
       // Deregistrate watchers.
-      $scope.deregistrationList.forEach((value, idx, arr) => {
-        value()
+      $scope.watcherDeregistrationList.forEach((deregFunc) => {
+        deregFunc()
       })
-      $scope.deregistrationList = []
       disconnect()
 
       $scope.started = false
     }
 
-    $scope.registrateWatchers = function () {
-      $scope.registrationList.forEach((value, idx, arr) => {
-        let deregistrateWarcher = value()
-        $scope.deregistrationList.push(deregistrateWarcher)
-      })
-    }
 
     init()
 
