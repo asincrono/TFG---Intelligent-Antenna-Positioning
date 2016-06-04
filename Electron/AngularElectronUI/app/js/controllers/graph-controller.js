@@ -1,5 +1,5 @@
 angular.module('MainApp')
-  .controller('GraphController', ['$scope', function($scope) {
+  .controller('GraphController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
     'use strict'
 
     function positionToNumber(position, rows, columns) {
@@ -184,11 +184,11 @@ angular.module('MainApp')
       })
 
       google.charts.setOnLoadCallback(initChart)
-
-      let registrateWatcher = function() {
-        return $scope.$watch((scope) => {
+      WatcherTracker.registerWatcher($scope,
+        (scope) => {
           return scope.netStats
-        }, (newValue, oldValue) => {
+        },
+        (newValue, oldValue) => {
           console.log('I know that stats changed.')
           console.log('Stats:', newValue)
           if (newValue) {
@@ -199,12 +199,9 @@ angular.module('MainApp')
               updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.noise])
             }
           }
-        }, true)
-      }
-
-      let deregistrateWatcher = registrateWatcher()
-      $scope.deregistrationList.push(deregistrateWatcher)
-      $scope.registrationList.push(registrateWatcher)
+        },
+        true
+      )
     }
     init()
   }])
