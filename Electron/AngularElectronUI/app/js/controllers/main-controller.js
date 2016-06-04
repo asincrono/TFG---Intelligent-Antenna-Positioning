@@ -281,7 +281,7 @@ angular.module('MainApp')
       // Sorry for this but it's so cute :)
       meanLevel /= numStats
       meanNoise /= numStats
-      return new utils.NetStats(meanLevel, meanNoise)
+      return new NetInfo.NetStats(meanLevel, meanNoise)
     }
 
     function wifiReadings(timeout, delay, readings, callback) {

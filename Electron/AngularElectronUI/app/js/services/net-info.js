@@ -1,6 +1,6 @@
 angular.module('MainApp')
   .factory('NetInfo', function NetInfoFactory() {
-
+    const {rTrim} = require('./js/utils/utils.js')
     const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
     framework/Versions/Current/Resources/airport -I'
 
