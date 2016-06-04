@@ -62,6 +62,8 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
   return {
     registerWatcher: registerWatcher,
     cleanWatchers: cleanWatchers,
+    startWatchers: startWatchers,
+    stopWatchers: stopWatchers,
     count: count
   }
 })
