@@ -1,6 +1,5 @@
-'use strict'
-
 angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
+  'use strict'
   // Load serial module.
   const SerialPort = require('serialport')
 

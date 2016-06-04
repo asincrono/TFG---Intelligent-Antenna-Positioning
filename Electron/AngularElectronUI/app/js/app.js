@@ -139,10 +139,10 @@ if (process.platform === 'darwin') {
 
 const appMenu = Menu.buildFromTemplate(menuTemplate)
 Menu.setApplicationMenu(appMenu)
-
-window.addEventListener('contextmenu', (e) => {
-  e.preventDefault()
-  menu.popup(remote.getCurrentWindow())
-}, false)
+// MAYBE ADD CONTEXT MENU?
+// window.addEventListener('contextmenu', (e) => {
+//   e.preventDefault()
+//   menu.popup(remote.getCurrentWindow())
+// }, false)
 
 angular.module('MainApp', ['ngMaterial'])

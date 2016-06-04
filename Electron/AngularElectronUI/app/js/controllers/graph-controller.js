@@ -1,7 +1,6 @@
-'use strict'
-
 angular.module('MainApp')
-  .controller('GraphController', ['$scope', function ($scope) {
+  .controller('GraphController', ['$scope', function($scope) {
+    'use strict'
 
     function positionToNumber(position, rows, columns) {
       let left = position.x % 2
@@ -20,7 +19,7 @@ angular.module('MainApp')
       let x = 0
       let y = 0
       while (position < limit) {
-        yield ({
+        yield({
           v: position,
           f: `${x}, ${y}`
         })
@@ -85,7 +84,7 @@ angular.module('MainApp')
       let hTicks = []
       let pair = pairValFormat.next().value
 
-      while(pair) {
+      while (pair) {
         hTicks.push(pair)
         pair = pairValFormat.next().value
       }
@@ -152,12 +151,12 @@ angular.module('MainApp')
 
       $scope.data.addRow(dataRow)
 
-//      if ($scope.position >= 14) {
-//        $scope.options.hAxis.viewWindow.min += 1
-//        $scope.options.hAxis.viewWindow.max += 1
-//      } else {
-//        $scope.position += 1
-//      }
+      //      if ($scope.position >= 14) {
+      //        $scope.options.hAxis.viewWindow.min += 1
+      //        $scope.options.hAxis.viewWindow.max += 1
+      //      } else {
+      //        $scope.position += 1
+      //      }
       drawGraph()
     }
 
@@ -169,7 +168,7 @@ angular.module('MainApp')
       $scope.data.addColumn('number', 'Position')
       $scope.data.addColumn('number', 'Level', 'level')
       $scope.data.addColumn('number', 'Noise', 'noise')
-      // bitrate?
+        // bitrate?
       $scope.data.addColumn('number', 'Bitrate', 'bitrate')
 
       new google.visualization.LineChart(document.getElementById('linechart'))
@@ -186,7 +185,7 @@ angular.module('MainApp')
 
       google.charts.setOnLoadCallback(initChart)
 
-      let registrateWatcher = function () {
+      let registrateWatcher = function() {
         return $scope.$watch((scope) => {
           return scope.netStats
         }, (newValue, oldValue) => {
@@ -195,7 +194,7 @@ angular.module('MainApp')
           if (newValue) {
             if ($scope.chart) {
               console.log('AntennaPosition(graphCtrl)', $scope.antennaPosition)
-              //updateGraph([$scope.antennaPosition.toString(), newValue.level, newValue.noise])
+                //updateGraph([$scope.antennaPosition.toString(), newValue.level, newValue.noise])
               console.log('pos:', $scope.antennaPosition, 'number:', positionToNumber($scope.antennaPosition, $scope.rows))
               updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.noise])
             }
@@ -208,4 +207,4 @@ angular.module('MainApp')
       $scope.registrationList.push(registrateWatcher)
     }
     init()
-}])
+  }])

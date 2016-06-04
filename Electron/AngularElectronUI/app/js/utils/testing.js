@@ -9,46 +9,6 @@ const {
 const CurlCMD = 'curl'
 const CurlArgs = ['-s', '-u', 'tfg:tfg', '-o', '/dev/null', '-w "%{speed_download}"', 'ftp://192.168.0.1/TFG/rnd_file_10MB.data']
 
-function spawnTest() {
-  curl.on('error', (err) => {
-    console.log(err)
-  })
-
-  curl.stdout.on('data', (data) => {
-    console.log('stdout:\n', data.toString())
-  })
-
-  curl.stderr.on('data', (data) => {
-    console.log('stderr:\n', data.toString())
-  })
-}
-
-class BreakPromise extends Promise {
-  constructor(f) {
-    super(f)
-    this.break = false
-  }
-
-  setBreak() {
-    this.break = true
-  }
-}
-
-let resolve = function (stdout, stderr) {
-  console.log('resolving')
-  console.log('stdout:', stdout, 'stderr:', stderr)
-  if (stdout) {
-    console.log('stdout:\n', stdout)
-    if (!curlProm.break) {
-      console.log('repeating')
-      curlProm.then(resolve, reject)
-    }
-  }
-  if (stderr) {
-    console.log('stderr:\n', stderr)
-  }
-}
-
 let reject = function (err) {
   console.log('rejecting')
   console.log(err)

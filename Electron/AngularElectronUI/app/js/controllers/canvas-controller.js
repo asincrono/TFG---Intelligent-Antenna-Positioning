@@ -1,5 +1,5 @@
-'use strict'
 angular.module('MainApp').controller('CanvasController', ['$scope', function ($scope) {
+'use strict'
 
   function drawMatrix(columns, rows, width, height, color) {
     let canvas = document.getElementById('canvas')

@@ -1,7 +1,6 @@
-'use strict'
-
 angular.module('MainApp')
   .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', function ($scope, $timeout, $interval, NetInfo, ArduinoComm) {
+    'use strict'
     const usbDetect = require('usb-detection')
     const path = require('path')
     const utils = require('./js/utils/utils.js')
@@ -80,7 +79,10 @@ angular.module('MainApp')
         submenu: []
       }
 
-      let devices = NetInfo.listIfaces()
+      // We'll filter devices starting by 'lo' and 'en'.
+      let devices = NetInfo.listIfaces().filter((iface) => {
+        return (iface.search(/^lo/) < 0 && iface.search(/^en/) < 0)
+      })
       let selected = false
       devices.forEach((device) => {
         // We select the first avaliable device
