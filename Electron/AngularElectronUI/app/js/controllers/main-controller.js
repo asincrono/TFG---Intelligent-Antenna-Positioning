@@ -182,7 +182,7 @@ angular.module('MainApp')
 
     function registrateWatcher(toWatch, toDo, deepCheck) {
       let watcher = $scope.$watch(toWatch, toDo, deepCheck)
-      if (watcherDeregistrationList) {
+      if ($scope.watcherDeregistrationList) {
         $scope.watcherDeregistrationList.push(watcher)
       } else {
         $scope.watcherDeregistrationList = [watcher]
