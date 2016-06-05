@@ -680,7 +680,7 @@ angular.module('MainApp')
         // Stop curl executor
         $scope.executor.quit()
 
-        // Deregistrate watchers.
+        // Deregister watchers.
         WatcherTracker.cleanWatchers()
         //disconnect()
 
