@@ -25,50 +25,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
         callback(arduinoAddr)
       })
     },
-    //    listPorts: function (callback) {
-    //      SerialPort.list((err, portList) => {
-    //        if (err) {
-    //          console.log(err)
-    //        } else {
-    //          callback(portList)
-    //        }
-    //      })
-    //    },
-    //
-    //    getAddr: function (callback) {
-    //      SerialPort.list((err, portList) => {
-    //        let addr
-    //        if (portList) {
-    //          let filteredList = portList.filter((port) => {
-    //            if (port.manufacturer) {
-    //              return port.manufacturer.includes('Arduino')
-    //            }
-    //            return false
-    //          })
-    //          console.log(filteredList)
-    //          if (filteredList.length > 0) {
-    //            addr = filteredList[0].comName
-    //          }
-    //        }
-    //        console.log('error:', error, 'addr:', addr)
-    //        callback(err, addr)
-    //      })
-    //      SerialPort.list((err, portList) => {
-    //        if (err) {
-    //          console.log(err)
-    //        } else {
-    //          let filterdList = portList.filter((port) => {
-    //            if (port.manufacturer) {
-    //              return port.manufacturer.includes('Arduino')
-    //            }
-    //            return false
-    //          })
-    //          if (filterdList.length > 0) {
-    //            callback(filterdList[0].comName)
-    //          }
-    //        }
-    //      })
-    //    },
+  
     createPort: function (portAddr, baudRate) {
       let port = new SerialPort(
         portAddr, {
