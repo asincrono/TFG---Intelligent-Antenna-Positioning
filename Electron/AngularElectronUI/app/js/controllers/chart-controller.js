@@ -2,6 +2,60 @@ angular.module('MainApp')
   .controller('GraphController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
     'use strict'
 
+    const CHART_OPTIONS = {
+      title: 'Signal stats for different antenna positions',
+
+      //        width: 1150,
+      //        height: 600,
+
+      series: {
+        0: {targetAxisIndex: 0},
+        1: {targetAxisIndex: 1}
+      },
+      hAxis: {
+        ticks: hTicks,
+        title: 'Positions',
+        viewWindow: {
+          min: 0,
+          max: 15
+        }
+      },
+      vAxis: {
+        0: {
+          title: 'Level',
+          minValue: -100,
+          maxValue: 0
+        },
+        1: {
+          title: 'Bitrate (Mbps)',
+          minValue: 0,
+          maxValue: 450,
+        }
+      },
+      animation: {
+        startup: true,
+        duration: 750,
+        easing: 'out'
+      },
+
+      legend: {
+        position: 'bottom'
+      },
+
+      explorer: {
+        axis: 'horizontal',
+        actions: [
+          'dragToPan'
+        ]
+      },
+      theme: 'material'
+    }
+
+    let chart
+    let data
+    let position
+    let rowPos
+
     function positionToNumber(position, rows, columns) {
       let left = position.x % 2
       if (left) {
@@ -41,44 +95,11 @@ angular.module('MainApp')
       }
     }
 
-    function drawGraph() {
-      $scope.chart.draw($scope.data, $scope.options)
+    function drawGraph(chart, data, options) {
+      chart.draw(data, options)
     }
 
     function initChart() {
-
-      //      let options = {
-      //        legend: {
-      //          position: 'bottom'
-      //        },
-      //
-      //        explorer: {
-      //          actions: 'dragToPan'
-      //          , axis: 'horizontal'
-      //        },
-      //
-      //        title: 'Signal stats for different antenna positions'
-      //        , subtitle: 'Hey',
-      //
-      //        //        width: 1150,
-      //        //        height: 600,
-      //        hAxis: {
-      //          viewWindow: {
-      //            min: 0
-      //            , max: 15
-      //          }
-      //        }
-      //        , vAxis: {
-      //          minValue: -100
-      //          , maxValue: 0
-      //        }
-      //        , animation: {
-      //          startup: true
-      //          , duration: 750
-      //          , easing: 'out'
-      //        }
-      //        , theme: 'material'
-      //      }
 
       let pairValFormat = positionTextGen($scope.rows, $scope.columns)
       let hTicks = []
@@ -89,58 +110,18 @@ angular.module('MainApp')
         pair = pairValFormat.next().value
       }
 
-      let options = {
-        legend: {
-          position: 'bottom'
-        },
-
-        explorer: {
-          axis: 'horizontal',
-          actions: [
-            'dragToPan'
-          ]
-        },
-
-        title: 'Signal stats for different antenna positions',
-
-        //        width: 1150,
-        //        height: 600,
-        hAxis: {
-          ticks: hTicks,
-          title: 'Positions',
-          viewWindow: {
-            min: 0,
-            max: 15
-          }
-        },
-        vAxis: {
-          minValue: -100,
-          maxValue: 0
-        },
-        animation: {
-          startup: true,
-          duration: 750,
-          easing: 'out'
-        },
-        theme: 'material'
-      }
-
-      $scope.options = options
-
-      let data = new google.visualization.DataTable()
-      $scope.data = data
+      data = new google.visualization.DataTable()
 
       //data.addColumn('string', 'Position')
       data.addColumn('number', 'Position')
       data.addColumn('number', 'Level', 'level')
       data.addColumn('number', 'Noise', 'noise')
 
-      let chart = new google.visualization.LineChart(document.getElementById('linechart'))
+      chart = new google.visualization.LineChart(document.getElementById('linechart'))
         //      let chart = new google.charts.Line(document.getElementById('linechart'))
-      $scope.chart = chart
 
       //      chart.draw(data, google.charts.Line.convertOptions(options))
-      chart.draw(data, options)
+      chart.draw(chart, data, options)
     }
 
     function updateGraph(dataRow) {
@@ -149,7 +130,7 @@ angular.module('MainApp')
       //$scope.netStat = new NetStat($scope.currentPosition, rand(0, 100), rand(0, 100), rand(0, 100))
       //$scope.data.addRow($scope.netStat.toDataRow())
 
-      $scope.data.addRow(dataRow)
+      data.addRow(dataRow)
 
       //      if ($scope.position >= 14) {
       //        $scope.options.hAxis.viewWindow.min += 1
@@ -157,27 +138,24 @@ angular.module('MainApp')
       //      } else {
       //        $scope.position += 1
       //      }
-      drawGraph()
+      drawGraph(chart, data, CHART_OPTIONS)
     }
 
     function reset() {
-      $scope.rowPos = 0
-      $scope.position = 0
+      rowPos = 0
+      position = 0
 
-      $scope.data = new google.visualization.DataTable()
-      $scope.data.addColumn('number', 'Position')
-      $scope.data.addColumn('number', 'Level', 'level')
-      $scope.data.addColumn('number', 'Noise', 'noise')
-        // bitrate?
-      $scope.data.addColumn('number', 'Bitrate', 'bitrate')
+      data = new google.visualization.DataTable()
+      data.addColumn('number', 'Position')
+      data.addColumn('number', 'Level', 'level')
+      data.addColumn('number', 'Bitrate', 'bitrate')
 
       new google.visualization.LineChart(document.getElementById('linechart'))
     }
 
     function init() {
-      $scope.rowPos = 0
-
-      $scope.position = 0
+      rowPos = 0
+      position = 0
 
       google.charts.load('current', {
         'packages': ['corechart']
@@ -197,11 +175,11 @@ angular.module('MainApp')
           console.log('I know that stats changed.')
           console.log('Stats:', newValue)
           if (newValue) {
-            if ($scope.chart) {
+            if (chart) {
               console.log('AntennaPosition(graphCtrl)', $scope.antennaPosition)
                 //updateGraph([$scope.antennaPosition.toString(), newValue.level, newValue.noise])
               console.log('pos:', $scope.antennaPosition, 'number:', positionToNumber($scope.antennaPosition, $scope.rows))
-              updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.noise])
+              updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.bitrate.rx])
             }
           }
         },
