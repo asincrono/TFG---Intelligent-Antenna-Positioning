@@ -1,5 +1,5 @@
 angular.module('MainApp')
-  .controller('GraphController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
+  .controller('ChartController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
     'use strict'
 
     const CHART_OPTIONS = {
