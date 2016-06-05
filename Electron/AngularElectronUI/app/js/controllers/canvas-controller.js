@@ -1,5 +1,5 @@
-'use strict'
-angular.module('MainApp').controller('CanvasController', ['$scope', function ($scope) {
+angular.module('MainApp').controller('CanvasController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
+  'use strict'
 
   function drawMatrix(columns, rows, width, height, color) {
     let canvas = document.getElementById('canvas')
@@ -111,7 +111,7 @@ angular.module('MainApp').controller('CanvasController', ['$scope', function ($s
     if (canvas.getContext) {
       let ctx = canvas.getContext('2d')
       let square = new Square(xIni, yIni, 23, 23, sX, sY)
-      let animFunc = function () {
+      let animFunc = function() {
         ctx.clearRect(0, 0, 251, 251)
         drawMatrix(10, 10, 25, 25)
         square.draw(ctx)
@@ -145,7 +145,7 @@ angular.module('MainApp').controller('CanvasController', ['$scope', function ($s
       window.requestAnimationFrame(animFunc)
     }
   }
-  
+
   function init() {
     // x, y, rows, columns, width, height, thickness, color) {
     $scope.matrix = new Matrix(0, 0, 5, 5, 30, 30, 1, 'rgba(0, 0, 0, 0.50)', 1)
@@ -153,32 +153,53 @@ angular.module('MainApp').controller('CanvasController', ['$scope', function ($s
 
     $scope.matrix.draw(document.getElementById('canvas').getContext('2d'))
     $scope.square.draw(document.getElementById('canvas').getContext('2d'))
-    //  moveSquare($scope.square, $scope.matrix, 4, 4, document.getElementById('canvas').getContext('2d'))
-    //  moveSquare($scope.square, $scope.matrix, 0, 0, document.getElementById('canvas').getContext('2d'), 3000)
+      //  moveSquare($scope.square, $scope.matrix, 4, 4, document.getElementById('canvas').getContext('2d'))
+      //  moveSquare($scope.square, $scope.matrix, 0, 0, document.getElementById('canvas').getContext('2d'), 3000)
 
-    /*
-  We add a watcher to update the canvas image when the antenna position change.
-  antennaPosition $scope property defined in the main controller.
-   */
+    /* We add a watcher to update the canvas image when the antenna position change.
+    antennaPosition $scope property defined in the main controller. */
+
 
     // Instead of using 'currentPosition' in watch I can use a function. It's kind of better.
-    let deregistrate = $scope.$watch((scope) => {return scope.antennaPosition}, (newValue, oldValue) => {
-      if (newValue) {
-        console.log('(canvasCtrl) Antenna position changed: (from)', oldValue, '(to)', newValue)
-        let canvas = document.getElementById('canvas')
+    /* This will be a persisten watcher. Won't be removed at stop. */
+    WatcherTracker.registerWatcher($scope,
+      (scope) => {
+        return scope.antennaPosition
+      }, (newValue, oldValue) => {
+        if (newValue) {
+          console.log('(canvasCtrl) Antenna position changed: (from)', oldValue, '(to)', newValue)
+          let canvas = document.getElementById('canvas')
 
-        if (canvas.getContext) {
-          let ctx = canvas.getContext('2d')
-          moveSquare($scope.square, $scope.matrix, newValue.x, newValue.y, ctx)
+          if (canvas.getContext) {
+            let ctx = canvas.getContext('2d')
+            moveSquare($scope.square, $scope.matrix, newValue.x, newValue.y, ctx)
+          }
+        } else {
+          console.log('(canvasCtrl) Initializing: $scope.antennaPosition=', $scope.currentPosition)
         }
-      } else {
-        console.log('(canvasCtrl) Initializing: $scope.antennaPosition=', $scope.currentPosition)
-      }
-    }, true)
-    
-    
-    $scope.deregistrationList.push(deregistrate)
+      },
+      true,
+      true)
+
+
+
+    // let deregistrate = $scope.$watch((scope) => {return scope.antennaPosition}, (newValue, oldValue) => {
+    //   if (newValue) {
+    //     console.log('(canvasCtrl) Antenna position changed: (from)', oldValue, '(to)', newValue)
+    //     let canvas = document.getElementById('canvas')
+    //
+    //     if (canvas.getContext) {
+    //       let ctx = canvas.getContext('2d')
+    //       moveSquare($scope.square, $scope.matrix, newValue.x, newValue.y, ctx)
+    //     }
+    //   } else {
+    //     console.log('(canvasCtrl) Initializing: $scope.antennaPosition=', $scope.currentPosition)
+    //   }
+    // }, true)
+    //
+    //
+    // $scope.deregistrationList.push(deregistrate)
   }
-  
+
   init()
 }])

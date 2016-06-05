@@ -1,5 +1,5 @@
 {
-  "name": "AntennaPositionController",
+  "name": "antennaPositionController",
   "description": "Web interface to control Arduino based WiFi antenna positioning device",
   "main": "main.js",
   "authors": [
@@ -11,7 +11,7 @@
     "javascritp",
     "nodejs"
   ],
-  "homepage": "https://github.com/asincrono/TFG",
+  "homepage": "https://github.com/asincrono/TFG---Intelligent-Antenna-Positioning",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -20,7 +20,6 @@
     "tests"
   ],
   "dependencies": {
-    "angular-material": "^1.0.8",
-    "ng-electron": "develephant/ng-electron#^0.4.0"
+    "angular-material": "^1.0.8"
   }
 }

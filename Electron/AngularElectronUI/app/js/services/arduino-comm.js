@@ -1,9 +1,7 @@
-'use strict'
-
 angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
+  'use strict'
   // Load serial module.
   const SerialPort = require('serialport')
-    //const SerialPort = serialport.SerialPort
 
   return {
     list: function (callback)  {
@@ -27,50 +25,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
         callback(arduinoAddr)
       })
     },
-    //    listPorts: function (callback) {
-    //      serialport.list((err, portList) => {
-    //        if (err) {
-    //          console.log(err)
-    //        } else {
-    //          callback(portList)
-    //        }
-    //      })
-    //    },
-    //
-    //    getAddr: function (callback) {
-    //      serialport.list((err, portList) => {
-    //        let addr
-    //        if (portList) {
-    //          let filteredList = portList.filter((port) => {
-    //            if (port.manufacturer) {
-    //              return port.manufacturer.includes('Arduino')
-    //            }
-    //            return false
-    //          })
-    //          console.log(filteredList)
-    //          if (filteredList.length > 0) {
-    //            addr = filteredList[0].comName
-    //          }
-    //        }
-    //        console.log('error:', error, 'addr:', addr)
-    //        callback(err, addr)
-    //      })
-    //      serialport.list((err, portList) => {
-    //        if (err) {
-    //          console.log(err)
-    //        } else {
-    //          let filterdList = portList.filter((port) => {
-    //            if (port.manufacturer) {
-    //              return port.manufacturer.includes('Arduino')
-    //            }
-    //            return false
-    //          })
-    //          if (filterdList.length > 0) {
-    //            callback(filterdList[0].comName)
-    //          }
-    //        }
-    //      })
-    //    },
+  
     createPort: function (portAddr, baudRate) {
       let port = new SerialPort(
         portAddr, {
@@ -89,7 +44,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
-          parser: serialport.parsers.readline('\n')
+          parser: SerialPort.parsers.readline('\n')
         },
         error => {
           console.log('Failed to open:', error)
@@ -118,7 +73,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
-          parser: serialport.parsers.readline('\n')
+          parser: SerialPort.parsers.readline('\n')
         },
         err => {
           if (err) {

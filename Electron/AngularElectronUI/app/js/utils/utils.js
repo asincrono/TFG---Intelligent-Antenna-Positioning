@@ -1,17 +1,8 @@
 'use strict'
 
-const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
-framework/Versions/Current/Resources/airport -I'
+const fs = require('fs')
 
-const DARWIN_NETSTAT_CMD = ''
-const LINUX_CMD_STATS = 'cat /proc/net/wireless'
-const LINUX_CMD_RXTX = 'cat /proc/net/dev'
-const LINUX_CMD_ARGS = ''
-const LINUX_CMD_RATE = ''
-const LINUX_CMD_RATE_ARGS = ''
-const LINUX_PROC_PATH = ''
-const WINDOWS_NETSH_CMD = ''
-const WINDOWS_NETSH_ARGS = ''
+const {execFile} = require('child_process')
 
 class Position {
   constructor(x, y) {
@@ -121,7 +112,7 @@ class Position {
     xMax = xMax ? xMax : 100
     yMin = yMin ? yMin : 0
     yMax = yMax ? yMax : 100
-    return new Postion(Utils.rand(xMin, xMax), Utils.rand(yMin, yMax))
+    return new Position(rand(xMin, xMax), rand(yMin, yMax))
   }
 
   toString() {
@@ -129,34 +120,15 @@ class Position {
   }
 }
 
-class NetStats {
-  constructor(signal, noise, tx) {
-    this.signal = signal
-    this.noise = noise
-    this.tx = tx
-    this.rx = rx
-    this.timeStamp = Date.now()
-  }
-
-  updateStats(stats) {
-    this.signal = stats.signal
-    this.noise = stats.noise
-    this.tx = stats.tx
-    this.rx = stats.rx
-    this.timeStamp = Date.now()
-  }
-}
-
 /* Antenna position is a position with stats */
 class AntennaPosition extends Position {
   constructor(x, y, stats) {
     super(x, y)
-
     this.stats = stats
   }
 
   setStats(stats) {
-    this.stats.signal = stats.signal
+    this.stats.level = stats.level
     this.stats.noise = stats.noise
   }
 
@@ -173,62 +145,17 @@ class AntennaPosition extends Position {
   }
 
   clone() {
-    return new AntennaPosition(this.x, this.y, this.stats.signal, this.stats.noise)
+    return new AntennaPosition(this.x, this.y, this.stats.level, this.stats.noise)
   }
 
   appendFile(file) {
-    let data = `${new Date(this.stats.timeStamp).toLocaleString()}, ${this.x}, ${this.y}, ${this.stats.signal}, ${this.stats.noise}\n`
+    let data = `${new Date(this.stats.timeStamp).toLocaleString()}, ${this.x}, ${this.y}, ${this.stats.level}, ${this.stats.noise}\n`
     fs.appendFile(file, data, (err) => {
       if (err) {
         console.log('Error writing antenna position to file"', file, '"', err)
       }
     })
   }
-}
-
-function parseLinux(data) {
-  let line = data.split('\n')[2]
-  let values = line.split(/\s+/)
-  let signal = parseInt(rTrim(values[3], '.'))
-  let noise = parseInt(rTrim(values[4], '.'))
-  return new NetStats(signal, noise)
-}
-
-function parseDarwin(data) {
-  let signal = parseInt(data.match(/agrCtlRSSI: (\-\d+)/)[1])
-  let noise = parseInt(data.match(/agrCtlNoise: (\-\d+)/)[1])
-  return new NetStats(signal, noise)
-}
-
-function getNetStats(callback) {
-  switch (os.platform()) {
-  case 'darwin':
-    {
-      exec(DARWIN_AIRPORT_CMD, (err, stdout, stderr) => {
-        if (err) {
-          console.log(err, stderr)
-        } else {
-          callback(parseDarwin(stdout))
-        }
-      })
-    }
-    break
-  case 'linux':
-    {
-      exec(LINUX_CMD_STATS, (err, stdout, stderr) => {
-        if (err) {
-          console.log(err, stderr)
-        } else {
-          callback(parseLinux(stdout))
-        }
-      })
-    }
-    break
-  }
-}
-
-function listIfaces() {
-  return os.networkInterfaces()
 }
 
 function rTrim(str, char) {
@@ -241,43 +168,8 @@ function lTrim(str, char) {
   return str.replace(re, '')
 }
 
-function testLs(callback) {
-  exec('ls', ['-la', '/'], (err, stdout, stderr) => {
-    if (err != null) {
-      callback(null)
-    } else {
-      callback(stdout.toString())
-    }
-  })
-}
-
 function trimParenthesis(str) {
   return str.replace(/[\(\)]/g, '')
-}
-
-function decCoordToPercent(x, slices) {
-  if (x == 0) {
-    return 0
-  }
-  if (x > slices) {
-    return undefined
-  }
-  let xStep = Math.floor(100 / slices)
-  return x * xStep
-}
-
-function percentCoordToDec(x, tol, steps) {
-  let step = 100 / (steps - 1)
-  let position = 0
-  for (let i = 0; i < steps; i += 1) {
-    position = i * step
-    if (Math.abs(position - x) <= tol) {
-      return i
-    } else if (x < position) {
-      throw new RangeError(`${x} isn't valid (tolerance: ${tol} nearest position: ${position}`)
-    }
-  }
-  return undefined
 }
 
 function leftPad(value, times, padChar) {
@@ -295,41 +187,33 @@ function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-function getRxTx(callback) {
-  exec(LINUX_CMD_RXTX, (err, stdout, stderr) => {
-    if (err) {
-      callback(err)
-    } else {
-      let lines = stdout.split('\n')
-      let values = lines[3].replace(/\s+/g, ' ').splice(1).split(' ')
-      let rx = values[1]
-      let tx = values[9]
-    }
-    callback(null, rx, tx)
-  })
-}
-
 class Executor {
-  constructor(cmd, args) {
+  constructor(cmd, args, cb) {
     this.cmd = cmd
     this.args = args
-    let obj = this
+    this.cb = cb
+    this.child = null
+  }
 
-    let callback = function (err, stdout, stderr) {
-      if (err) {
-        console.log(err)
-      } else {
-        if (stdout) {
-          console.log(stdout)
-          obj.child = execFile(cmd, args, callback)
-        }
-        if (stderr) {
-          console.log(stderr)
-        }
+  callback(err, stdout, stderr) {
+    if (err) {
+      console.log(err)
+      if (this.cb) {
+        this.cb(err)
       }
-    }
+    } else if (stdout) {
+        console.log(stdout)
+        if (this.cb) {
+          this.cb(null, stdout, stderr)
+        }
+        this.run()
+      } else if (stderr) {
+        this.cb(null, null, stderr)
+      }
+  }
 
-    this.child = execFile(cmd, args, callback)
+  run() {
+    this.child = execFile(this.cmd, this.args, this.callback.bind(this))
   }
 
   quit() {
@@ -341,22 +225,12 @@ class Executor {
   }
 }
 
-/* Comment
-getNetInfo('en1', netStat => {
-  console.log('Result : %s', netStat.toString())
-})
-*/
+exports.leftPad = leftPad
+exports.rightPad = rightPad
+exports.lTrim = lTrim
+exports.rTrim = rTrim
+exports.trimParenthesis = trimParenthesis
 exports.Executor = Executor
 exports.Position = Position
 exports.AntennaPosition = AntennaPosition
-exports.NetStats = NetStats
-exports.listIfaces = listIfaces
-exports.testLs = testLs
-exports.getNetStats = getNetStats
-exports.getRxTx = getRxTx
-exports.trimParenthesis = trimParenthesis
-exports.decCoordToPercent = decCoordToPercent
-exports.percentCoordToDec = percentCoordToDec
-exports.leftPad = leftPad
-exports.rightPad = rightPad
 exports.rand = rand

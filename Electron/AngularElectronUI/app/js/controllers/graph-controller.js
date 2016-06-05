@@ -1,7 +1,6 @@
-'use strict'
-
 angular.module('MainApp')
-  .controller('GraphController', ['$scope', function ($scope) {
+  .controller('GraphController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
+    'use strict'
 
     function positionToNumber(position, rows, columns) {
       let left = position.x % 2
@@ -20,10 +19,10 @@ angular.module('MainApp')
       let x = 0
       let y = 0
       while (position < limit) {
-        yield {
+        yield({
           v: position,
           f: `${x}, ${y}`
-        }
+        })
 
         if (x % 2 === 0) {
           y += 1
@@ -85,7 +84,7 @@ angular.module('MainApp')
       let hTicks = []
       let pair = pairValFormat.next().value
 
-      while(pair) {
+      while (pair) {
         hTicks.push(pair)
         pair = pairValFormat.next().value
       }
@@ -133,7 +132,7 @@ angular.module('MainApp')
 
       //data.addColumn('string', 'Position')
       data.addColumn('number', 'Position')
-      data.addColumn('number', 'Signal', 'signal')
+      data.addColumn('number', 'Level', 'level')
       data.addColumn('number', 'Noise', 'noise')
 
       let chart = new google.visualization.LineChart(document.getElementById('linechart'))
@@ -152,12 +151,12 @@ angular.module('MainApp')
 
       $scope.data.addRow(dataRow)
 
-//      if ($scope.position >= 14) {
-//        $scope.options.hAxis.viewWindow.min += 1
-//        $scope.options.hAxis.viewWindow.max += 1
-//      } else {
-//        $scope.position += 1
-//      }
+      //      if ($scope.position >= 14) {
+      //        $scope.options.hAxis.viewWindow.min += 1
+      //        $scope.options.hAxis.viewWindow.max += 1
+      //      } else {
+      //        $scope.position += 1
+      //      }
       drawGraph()
     }
 
@@ -167,8 +166,10 @@ angular.module('MainApp')
 
       $scope.data = new google.visualization.DataTable()
       $scope.data.addColumn('number', 'Position')
-      $scope.data.addColumn('number', 'Signal', 'signal')
+      $scope.data.addColumn('number', 'Level', 'level')
       $scope.data.addColumn('number', 'Noise', 'noise')
+        // bitrate?
+      $scope.data.addColumn('number', 'Bitrate', 'bitrate')
 
       new google.visualization.LineChart(document.getElementById('linechart'))
     }
@@ -184,26 +185,29 @@ angular.module('MainApp')
 
       google.charts.setOnLoadCallback(initChart)
 
-      let registrateWatcher = function () {
-        return $scope.$watch((scope) => {
+      // Setting up a persisten watcher.
+      /* A persisten watcher is one that won't be removed if you start the app
+      again (start isn't the same as reload or restart)
+      Watchers in init usually are persistent */
+      WatcherTracker.registerWatcher($scope,
+        (scope) => {
           return scope.netStats
-        }, (newValue, oldValue) => {
+        },
+        (newValue, oldValue) => {
           console.log('I know that stats changed.')
           console.log('Stats:', newValue)
           if (newValue) {
             if ($scope.chart) {
               console.log('AntennaPosition(graphCtrl)', $scope.antennaPosition)
-              //updateGraph([$scope.antennaPosition.toString(), newValue.signal, newValue.noise])
+                //updateGraph([$scope.antennaPosition.toString(), newValue.level, newValue.noise])
               console.log('pos:', $scope.antennaPosition, 'number:', positionToNumber($scope.antennaPosition, $scope.rows))
-              updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.signal, newValue.noise])
+              updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.noise])
             }
           }
-        }, true)
-      }
-
-      let deregistrateWatcher = registrateWatcher()
-      $scope.deregistrationList.push(deregistrateWatcher)
-      $scope.registrationList.push(registrateWatcher)
+        },
+        true,
+        true
+      )
     }
     init()
-}])
+  }])

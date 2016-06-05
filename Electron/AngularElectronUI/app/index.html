@@ -30,9 +30,10 @@
     <div layout="row" layout-align="center">
       <div layout="column" class="control-div" flex>
         <div layout="row" class="button-div">
-          <md-button class="md-raised md-primary" ng-disabled="!connected && !started" ng-click="start()">Start</md-button>
+          <!--  Start should be enable if !started AND connected-->
+          <md-button class="md-raised md-primary" ng-disabled="started || !connected" ng-click="mainCtrl.start()">Start</md-button>
 <!--          <md-button class="md-raised md-primary" ng-click="test()">Start</md-button>-->
-          <md-button class="md-raised md-warn" ng-disabled="!started" ng-click="stop()">Stop</md-button>
+          <md-button class="md-raised md-warn" ng-disabled="!started" ng-click="mainCtrl.stop()">Stop</md-button>
         </div>
         <form layout="column" name="configForm">
           <md-input-container flex>
@@ -76,9 +77,10 @@
               <th>Bps</th>
             </tr>
             <tr>
-              <td ng-bind="currentPosition.toString()">Cosa 1</td>
-              <td ng-bind="positionWithStats.stats.signal">Cosa 2</td>
-              <td ng-bind="positionWithStats.stats.noise">Cosa 3</td>
+              <td ng-bind="currentPosition.toString()">position</td>
+              <td ng-bind="netStats.level">level</td>
+              <td ng-bind="netStats.noise">noise</td>
+              <td ng-bind="netStats.bitrate.rx">bitrate</td>
             </tr>
           </thead>
         </table>
@@ -103,6 +105,7 @@
 <script src="js/controllers/config-controller.js"></script>
 <!-- Services -->
 <script src="js/services/arduino-comm.js"></script>
-<script src="js/services/net-stats.js" charset="utf-8"></script>
+<script src="js/services/net-info.js" charset="utf-8"></script>
+<script src="js/services/watcher-tracker.js" charset="utf-8"></script>
 
 </html>
