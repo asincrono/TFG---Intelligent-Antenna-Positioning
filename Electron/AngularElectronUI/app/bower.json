@@ -1,5 +1,5 @@
 {
-  "name": "antennaPositionController",
+  "name": "antenna_position_controller",
   "description": "Web interface to control Arduino based WiFi antenna positioning device",
   "main": "main.js",
   "authors": [
