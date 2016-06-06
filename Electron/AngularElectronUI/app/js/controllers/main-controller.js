@@ -141,14 +141,15 @@ angular.module('MainApp')
           if (err) {
             console.log(err)
             tryCount += 1
+
             if (maxTries && tryCount < maxTries) {
               // Try to determine if the error was cause a kill or quit signal
               // and prevent to retry
-              tryCount += 1
+              console.log('(mainCtrl) runCmdOnExecutor retry:', tryCount)
               if (delay) {
                 $timeout(function() {
                   executor.run()
-                })
+                }, delay)
               } else {
                 executor.run()
               }

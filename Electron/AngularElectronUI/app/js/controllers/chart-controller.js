@@ -177,13 +177,11 @@ angular.module('MainApp')
           return scope.netStats
         },
         (newValue, oldValue) => {
-          console.log('I know that stats changed.')
-          console.log('Stats:', newValue)
           if (newValue) {
             if (chart) {
-              console.log('AntennaPosition(graphCtrl)', $scope.antennaPosition)
-              console.log('pos:', $scope.antennaPosition, 'number:', positionToNumber($scope.antennaPosition, $scope.rows))
-              updateChart([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.bitrate.rx])
+              updateChart([positionToNumber($scope.antennaPosition,
+                $scope.rows, $scope.columns),
+                newValue.level, newValue.bitrate.rx])
             }
           }
         },
