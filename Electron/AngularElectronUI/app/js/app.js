@@ -10,10 +10,6 @@ const os = require('os')
 
 // const usbDetect = require('usb-detection')
 
-const {remote} = require('electron')
-
-const {app, Menu, MenuItem} = remote
-
 console.log(app.getName())
 
 const menuTemplate = [

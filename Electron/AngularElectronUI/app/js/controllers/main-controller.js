@@ -2,7 +2,7 @@ angular.module('MainApp')
   .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', 'WatcherTracker',
     function($scope, $timeout, $interval, NetInfo, ArduinoComm, WatcherTracker) {
       'use strict'
-      const {app} = require('remote')
+      const {app, MenuItem, Menu} = require('electron').remote
 
       const usbDetect = require('usb-detection')
       const path = require('path')
