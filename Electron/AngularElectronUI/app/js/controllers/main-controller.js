@@ -356,7 +356,7 @@ angular.module('MainApp')
             then we set the scope netstas value.
             */
           checkBitrate(() => {
-            console.log('(mainCtrl) checkBitrate:', bitrate)
+            console.log('(mainCtrl) checkBitrate:', $scope.bitrate)
             netStats.bitrate.rx = $scope.bitrate
             $scope.netStats = netStats
           })
