@@ -3,15 +3,16 @@ angular.module('MainApp')
     'use strict'
 
     function genHticks(rows, columns) {
-        let pairValFormat = positionTextGen(rows, columns)
-        let hTicks = []
-        let pair = pairValFormat.next().value
+      let hticks = []
+      let pairValFormat = positionTextGen(rows, columns)
+      let hTicks = []
+      let pair = pairValFormat.next().value
 
-        while (pair) {
-            hTicks.push(pair)
-            pair = pairValFormat.next().value
-        }
-        return hticks
+      while (pair) {
+        hTicks.push(pair)
+        pair = pairValFormat.next().value
+      }
+      return hticks
     }
 
     const CHART_OPTIONS = {
