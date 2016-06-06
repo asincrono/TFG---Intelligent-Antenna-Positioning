@@ -661,6 +661,7 @@ angular.module('MainApp')
               if (newValue.x === 0 && newValue.y === 0) {
                 resetAntennaPosition()
               } else if (!angular.equals(newValue, oldValue)) {
+                console.log('They are different!')
                 if (newValue.x === oldValue.x) {
                   moveAntennaY(newValue.y)
                 } else if (newValue.y === oldValue.y){
