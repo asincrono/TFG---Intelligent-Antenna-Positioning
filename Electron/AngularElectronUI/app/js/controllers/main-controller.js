@@ -2,6 +2,8 @@ angular.module('MainApp')
   .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', 'WatcherTracker',
     function($scope, $timeout, $interval, NetInfo, ArduinoComm, WatcherTracker) {
       'use strict'
+      const {app} = require('remote')
+
       const usbDetect = require('usb-detection')
       const path = require('path')
       const utils = require('./js/utils/utils.js')
@@ -462,6 +464,11 @@ angular.module('MainApp')
 
         // Start data transfer
         curlProcess = startDataTransfer(10, 3000 )
+
+        // Stop process on application end.
+        app.on('quit', () => {
+          curlProcess.quit()
+        })
 
         setDeviceSelectionMenu()
 
