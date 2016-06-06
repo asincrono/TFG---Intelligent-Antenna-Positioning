@@ -628,7 +628,7 @@ angular.module('MainApp')
             $scope.currentPosition.next($scope.rows, $scope.columns)
           } else {
             console.log('CALLING STOP')
-            stop()
+            self.stop()
             resetAntennaPosition(1000)
           }
         }
@@ -668,7 +668,7 @@ angular.module('MainApp')
             } else {
               // We reached the end of the cicle
               // console.log('(mainCtrl) currentPosition:', $scope.currentPosition)
-              stop()
+              self.stop()
               resetAntennaPosition(1000)
             }
           },
@@ -681,24 +681,24 @@ angular.module('MainApp')
             console.log('Starting in auto mode...')
               // Start of the sequence.
               // $scope.currentPosition = new utils.Position(0, 0)
-            $scope.currentPosition.set(0, 0)
+            $scope.currentPosition = new utils.Position(0, 0)
             break
           case 'manual':
             console.log('starting in manual...')
             let [x, y] = parsePosition($scope.manualPosition)
               // $scope.currentPosition = new utils.Position(x, y)
-            $scope.currentPosition.set(x, y)
+            $scope.currentPosition = new utils.Position(x, y)
             break
         }
       }
 
       self.stop = function stop() {
         // Stop curl executor
+        WatcherTracker.cleanWatchers()
         $scope.started = false
         curlProcess.quit()
 
         // Deregister watchers.
-        WatcherTracker.cleanWatchers()
       }
 
       init()
