@@ -463,7 +463,7 @@ angular.module('MainApp')
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
 
         // Start data transfer
-        curlProcess = startDataTransfer(10, 3000 )
+        curlProcess = startDataTransfer(10, 3000)
 
         // Stop process on application end.
         app.on('quit', () => {
@@ -648,45 +648,40 @@ angular.module('MainApp')
           )
 
           WatcherTracker.registerWatcher($scope,
-              (scope) => {
-                return scope.currentPosition
-              }, (newValue, oldValue) => {
-                console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
-                if (newValue) {
-                  if (newValue.x === 0 && newValue.y === 0) {
-                    // We ensure that we start at X = 0, y = 0
-                    resetAntennaPosition(500)
-                  } else if (oldValue) {
-                    if (newValue.x != oldValue.x) {
-                      //console.log('Moving X to: ', newValue.x)
-                      moveAntennaX(newValue.x, $scope.rows)
-                    } else if (newValue.y != oldValue.y) {
-                      //console.log('Moving Y to', newValue.y)
-                      moveAntennaY(newValue.y, $scope.columns)
-                    }
-                  }
-                } else {
-                  // We reached the end of the cicle
-                  console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
-                  resetAntennaPosition(1500)
-                  stop()
+            (scope) => {
+              return scope.currentPosition
+            }, (newValue, oldValue) => {
+              console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
+              if (newValue) {
+                if (newValue.x === 0 && newValue.y === 0) {
+                  // We ensure that we start at X = 0, y = 0
+                  resetAntennaPosition(500)
+                } else if (oldValue) {
+                  moveAntennaXY(newValue.x, newValue.y)
                 }
-              },
-              true,
-              false
-            )
+              } else {
+                // We reached the end of the cicle
+                console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
+                resetAntennaPosition(1500)
+                stop()
+              }
+            },
+            true,
+            false
+          )
 
           switch ($scope.configuration.mode) {
             case 'auto':
               console.log('Starting in auto mode...')
                 // Start of the sequence.
-              $scope.currentPosition = new utils.Position(0, 0)
+              // $scope.currentPosition = new utils.Position(0, 0)
+              $scope.currentPosition.set(0, 0)
               break
             case 'manual':
               console.log('starting in manual...')
               let [x, y] = parsePosition($scope.manualPosition)
-              $scope.currentPosition = new utils.Position(x, y)
-
+              // $scope.currentPosition = new utils.Position(x, y)
+              $scope.currentPosition = new utils.Position(y, y)
               break
           }
 
