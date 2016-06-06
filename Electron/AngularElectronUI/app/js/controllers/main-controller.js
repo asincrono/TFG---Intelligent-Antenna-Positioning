@@ -658,7 +658,9 @@ angular.module('MainApp')
           }, (newValue, oldValue) => {
             console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
             if (newValue) {
-              if (!angular.equals(newValue, oldValue)) {
+              if (newValue.x === 0 && newValue.y === 0) {
+                resetAntennaPosition()
+              } else if (!angular.equals(newValue, oldValue)) {
                 if (newValue.x === oldValue.x) {
                   moveAntennaY(newValue.y)
                 } else if (newValue.y === oldValue.y){
