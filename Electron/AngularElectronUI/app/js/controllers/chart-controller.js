@@ -170,7 +170,7 @@ angular.module('MainApp')
       /* A persisten watcher is one that won't be removed if you start the app
       again (start isn't the same as reload or restart)
       Watchers in init usually are persistent */
-      WatcherTracker.registerWatcher($scope,
+      WatcherTracker.registerWatcher('chartCtrl netStats', $scope,
         (scope) => {
           return scope.netStats
         },
