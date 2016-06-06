@@ -177,7 +177,7 @@ angular.module('MainApp')
         (newValue, oldValue) => {
           if (newValue) {
             if (chart) {
-              console.log('(chartCtrl) $scope.netStats.bitrate.rx', $scope.netStats.bitrate.rx)
+              // console.log('(chartCtrl) $scope.netStats.bitrate.rx', $scope.netStats.bitrate.rx)
               updateChart([positionToNumber($scope.antennaPosition,
                 $scope.rows, $scope.columns),
                 newValue.level, newValue.bitrate.rx])

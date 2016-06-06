@@ -167,7 +167,7 @@ angular.module('MainApp').controller('CanvasController', ['$scope', 'WatcherTrac
         return scope.antennaPosition
       }, (newValue, oldValue) => {
         if (newValue) {
-          console.log('(canvasCtrl) Antenna position changed: (from)', oldValue, '(to)', newValue)
+          // console.log('(canvasCtrl) Antenna position changed: (from)', oldValue, '(to)', newValue)
           let canvas = document.getElementById('canvas')
 
           if (canvas.getContext) {
@@ -175,7 +175,7 @@ angular.module('MainApp').controller('CanvasController', ['$scope', 'WatcherTrac
             moveSquare($scope.square, $scope.matrix, newValue.x, newValue.y, ctx)
           }
         } else {
-          console.log('(canvasCtrl) Initializing: $scope.antennaPosition=', $scope.currentPosition)
+          // console.log('(canvasCtrl) Initializing: $scope.antennaPosition=', $scope.currentPosition)
         }
       },
       true,
