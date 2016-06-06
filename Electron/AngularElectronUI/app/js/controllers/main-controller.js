@@ -621,16 +621,12 @@ angular.module('MainApp')
         won't be registered again. */
         WatcherTracker.startWatchers()
 
-        let afterWifiReadings
-        if ($scope.configuration.mode === 'auto') {
-          afterWifiReadings = function() {
-            //console.log('(mainCtrl) after wifi?')
+        let afterWifiReadings = function() {
+          if ($scope.mode === 'auto') {
             $scope.currentPosition.next($scope.rows, $scope.columns)
-          }
-        } else {
-          afterWifiReadings = function() {
-            resetAntennaPosition(500)
+          } else {
             stop()
+            resetAntennaPosition(1000)
           }
         }
 
@@ -651,38 +647,38 @@ angular.module('MainApp')
             false
           )
 
+          WatcherTracker.registerWatcher($scope,
+              (scope) => {
+                return scope.currentPosition
+              }, (newValue, oldValue) => {
+                console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
+                if (newValue) {
+                  if (newValue.x === 0 && newValue.y === 0) {
+                    // We ensure that we start at X = 0, y = 0
+                    resetAntennaPosition(500)
+                  } else if (oldValue) {
+                    if (newValue.x != oldValue.x) {
+                      //console.log('Moving X to: ', newValue.x)
+                      moveAntennaX(newValue.x, $scope.rows)
+                    } else if (newValue.y != oldValue.y) {
+                      //console.log('Moving Y to', newValue.y)
+                      moveAntennaY(newValue.y, $scope.columns)
+                    }
+                  }
+                } else {
+                  // We reached the end of the cicle
+                  console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
+                  resetAntennaPosition(1500)
+                  stop()
+                }
+              },
+              true,
+              false
+            )
+
           switch ($scope.configuration.mode) {
             case 'auto':
               console.log('Starting in auto mode...')
-                /* As this watcher will depend on the mode, won't be persistent */
-              WatcherTracker.registerWatcher($scope,
-                  (scope) => {
-                    return scope.currentPosition
-                  }, (newValue, oldValue) => {
-                    console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
-                    if (newValue) {
-                      if (newValue.x === 0 && newValue.y === 0) {
-                        // We ensure that we start at X = 0, y = 0
-                        resetAntennaPosition(500)
-                      } else if (oldValue) {
-                        if (newValue.x != oldValue.x) {
-                          //console.log('Moving X to: ', newValue.x)
-                          moveAntennaX(newValue.x, $scope.rows)
-                        } else if (newValue.y != oldValue.y) {
-                          //console.log('Moving Y to', newValue.y)
-                          moveAntennaY(newValue.y, $scope.columns)
-                        }
-                      }
-                    } else {
-                      // We reached the end of the cicle
-                      console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
-                      resetAntennaPosition(1500)
-                      stop()
-                    }
-                  },
-                  true,
-                  false
-                )
                 // Start of the sequence.
               $scope.currentPosition = new utils.Position(0, 0)
               break
@@ -690,6 +686,7 @@ angular.module('MainApp')
               console.log('starting in manual...')
               let [x, y] = parsePosition($scope.manualPosition)
               $scope.currentPosition = new utils.Position(x, y)
+
               break
           }
 
