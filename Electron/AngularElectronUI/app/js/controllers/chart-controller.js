@@ -125,7 +125,7 @@ angular.module('MainApp')
         //      let chart = new google.charts.Line(document.getElementById('linechart'))
 
       //      chart.draw(data, google.charts.Line.convertOptions(options))
-      chart.draw(chart, data, options)
+      chart.draw(chart, data, CHART_OPTIONS)
     }
 
     function updateGraph(dataRow) {
