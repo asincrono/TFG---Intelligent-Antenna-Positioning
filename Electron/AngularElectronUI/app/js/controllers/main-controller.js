@@ -666,13 +666,13 @@ angular.module('MainApp')
                 console.log('oldValue:', oldValue.toString())
                 if (newValue.x === oldValue.x) {
                   console.log('moving Y')
-                  moveAntennaY(newValue.y)
+                  moveAntennaY(newValue.y, $scope.rows, 500)
                 } else if (newValue.y === oldValue.y){
                   console.log('moving X')
-                  moveAntennaX(newValue.x)
+                  moveAntennaX(newValue.x, $scope.columns, 500)
                 } else {
                   console.log('moving XY')
-                  moveAntennaXY(newValue)
+                  moveAntennaXY(newValue, $scope.rows, $scope.columns, 500)
                 }
               }
             } else {
