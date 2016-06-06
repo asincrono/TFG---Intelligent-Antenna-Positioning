@@ -33,7 +33,8 @@ angular.module('MainApp')
           max: 15
         }
       },
-      vAxis: {
+
+      vAxes: {
         0: {
           title: 'Level',
           minValue: -100,
@@ -45,6 +46,7 @@ angular.module('MainApp')
           maxValue: 450,
         }
       },
+
       animation: {
         startup: true,
         duration: 750,
@@ -126,6 +128,7 @@ angular.module('MainApp')
         //      let chart = new google.charts.Line(document.getElementById('linechart'))
 
       //      chart.draw(data, google.charts.Line.convertOptions(options))
+      console.log('data:', data)
       chart.draw(chart, data, CHART_OPTIONS)
     }
 
