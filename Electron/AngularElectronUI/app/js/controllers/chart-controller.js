@@ -42,9 +42,8 @@ angular.module('MainApp')
     }
 
     function genHTicks(rows, columns) {
-      let hticks = []
-      let pairValFormat = positionTextGen(rows, columns)
       let hTicks = []
+      let pairValFormat = positionTextGen(rows, columns)
 
       let pair = pairValFormat.next().value
 
@@ -52,8 +51,7 @@ angular.module('MainApp')
         hTicks.push(pair)
         pair = pairValFormat.next().value
       }
-      console.log('hticks:', hticks)
-      return hticks
+      return hTicks
     }
 
     const CHART_OPTIONS = {
