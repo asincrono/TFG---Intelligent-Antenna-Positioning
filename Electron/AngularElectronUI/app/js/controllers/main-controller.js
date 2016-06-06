@@ -601,7 +601,7 @@ angular.module('MainApp')
                 bytes: bytes,
                 timestamp: timestamp
               }
-              console.log('checkBitrate rxStats:', rxStats)
+              console.log('checkBitrate rxStats:', $scope.rxStats)
               if (callback) {
                 console.log('(mainCtrl) checkBitrate calling callback.')
                 callback()
