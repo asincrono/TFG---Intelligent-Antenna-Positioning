@@ -77,13 +77,13 @@ angular.module('MainApp')
       vAxes: {
         0: {
           title: 'Level',
-          // minValue: -100,
-          // maxValue: 0
+          minValue: -100,
+          maxValue: -30
         },
         1: {
           title: 'Bitrate (Mbps)',
-          // minValue: 0,
-          // maxValue: 450,
+          minValue: 0,
+          maxValue: 100,
         }
       },
 
