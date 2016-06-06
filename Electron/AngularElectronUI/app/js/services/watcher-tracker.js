@@ -1,7 +1,8 @@
 angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFactory () {
   'use strict'
   class Watch {
-    constructor(watcherFunc, persistent) {
+    constructor(name, watcherFunc, persistent) {
+      this.watchName = name
       this.watcherFunc = watcherFunc
       this.watcherDeregFunc = null
       this.persistent = persistent
@@ -25,12 +26,12 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
   let watchList = []
 
-  function registerWatcher(scope, toWatch, toDo, deepCheck, persistent) {
+  function registerWatcher(name, scope, toWatch, toDo, deepCheck, persistent) {
     let watcherFunc = function() {
       return scope.$watch(toWatch, toDo, deepCheck)
     }
-    let watch = new Watch(watcherFunc, persistent)
-
+    let watch = new Watch(name, watcherFunc, persistent)
+    console.log('registering:', watch)
     watch.register()
 
     watchList.push(watch)
@@ -51,9 +52,9 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
   function cleanWatchers() {
     watchList.forEach((watch) => {
+      console.log('Deregistering:', watch)
       watch.deregister()
     })
-
     watchList = watchList.filter((watch) => {
       return watch.persistent
     })

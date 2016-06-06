@@ -407,8 +407,6 @@ angular.module('MainApp')
         let netStatsList = []
 
         let afterReadings = function() {
-          //console.log('afterReadings')
-          //console.log('callback =', callback)
           let netStats = genMeanNetStats(netStatsList)
             /* Afther this checkBitrate we modify bitrate in the netStats and
             then we set the scope netstas value.
@@ -430,7 +428,6 @@ angular.module('MainApp')
           //console.log('Inside timeout function')
 
           $interval(() => {
-            //console.log('Inside timmer function')
             NetInfo.getNetStats($scope.selectedDevice, (netStats) => {
               netStatsList.push(netStats)
               $scope.positionWithStats = new utils.AntennaPosition($scope.antennaPosition.x, $scope.antennaPosition.y, netStats)
@@ -462,6 +459,7 @@ angular.module('MainApp')
 
         $scope.positionWithStats = null
         $scope.currentPosition = new utils.Position(0, 0)
+        $scope.antennaPosition = new utils.Position(0, 0)
 
 
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
@@ -479,7 +477,7 @@ angular.module('MainApp')
 
         // Watch changes in positionWithStats -> save values to file.ç
         /* This watcher doesn't require deep check nor to be persistent */
-        WatcherTracker.registerWatcher($scope,
+        WatcherTracker.registerWatcher('positionWithStats', $scope,
           (scope) => {
             return scope.positionWithStats
           }, (newValue, oldValue) => {
@@ -629,6 +627,7 @@ angular.module('MainApp')
           if ($scope.configuration.mode === 'auto') {
             $scope.currentPosition.next($scope.rows, $scope.columns)
           } else {
+            console.log('CALLING STOP')
             stop()
             resetAntennaPosition(1000)
           }
@@ -637,7 +636,7 @@ angular.module('MainApp')
         // Watch changes in antennaPosition -> trigger wifi readings.
         /* Once Arduino tells us there is a new position ( -> change in
         antennaPosition) we do our readings*/
-        WatcherTracker.registerWatcher($scope,
+        WatcherTracker.registerWatcher('antennaPosition', $scope,
           (scope) => {
             return scope.antennaPosition
           }, (newValue, oldValue) => {
@@ -654,7 +653,7 @@ angular.module('MainApp')
           false
         )
 
-        WatcherTracker.registerWatcher($scope,
+        WatcherTracker.registerWatcher('currentPosition', $scope,
           (scope) => {
             return scope.currentPosition
           }, (newValue, oldValue) => {
@@ -699,7 +698,7 @@ angular.module('MainApp')
         curlProcess.quit()
 
         // Deregister watchers.
-        WatcherTracker.stopWatchers()    
+        WatcherTracker.cleanWatchers()
       }
 
       init()
