@@ -5,17 +5,20 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
       this.watcherFunc = watcherFunc
       this.watcherDeregFunc = null
       this.persistent = persistent
+      this.registered = false
     }
 
     register() {
       if (!this.registered) {
         this.watcherDeregFunc = this.watcherFunc()
+        this.registered = true
       }
     }
 
     deregister() {
       if (this.registered) {
         this.watcherDeregFunc()
+        this.registered = false
       }
     }
   }
