@@ -622,8 +622,8 @@ angular.module('MainApp')
         WatcherTracker.startWatchers()
 
         let afterWifiReadings = function() {
-          console.log('(afterReadings) mode:', $scope.mode)
-          if ($scope.mode === 'auto') {
+          console.log('(afterReadings) mode:', $scope.configuration.mode)
+          if ($scope.configuration.mode === 'auto') {
             $scope.currentPosition.next($scope.rows, $scope.columns)
           } else {
             stop()
@@ -663,8 +663,8 @@ angular.module('MainApp')
               } else {
                 // We reached the end of the cicle
                 console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
-                resetAntennaPosition(1500)
                 stop()
+                resetAntennaPosition(1000)
               }
             },
             true,
