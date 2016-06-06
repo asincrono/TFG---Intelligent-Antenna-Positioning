@@ -22,8 +22,8 @@ angular.module('MainApp')
       //        height: 600,
 
       series: {
-        0: {targetAxisIndex: 0},
-        1: {targetAxisIndex: 1}
+        1: {targetAxisIndex: 1},
+        2: {targetAxisIndex: 2}
       },
 
       hAxis: {
@@ -120,33 +120,35 @@ angular.module('MainApp')
 
       data = new google.visualization.DataTable()
 
-      //data.addColumn('string', 'Position')
-      data.addColumn('number', 'Position')
-      data.addColumn('number', 'Level', 'level')
-      data.addColumn('number', 'Bitrate', 'bitrate')
+      data.addColumn({
+        type: 'number',
+        label: 'Position'
+      })
+
+      data.addColumn({
+        type: 'number',
+        label: 'Level'
+      })
+
+      data.addColumn({
+        type: 'number',
+        label: 'Bitrate'
+      })
 
       chart = new google.visualization.LineChart(document.getElementById('linechart'))
         //      let chart = new google.charts.Line(document.getElementById('linechart'))
 
       //      chart.draw(data, google.charts.Line.convertOptions(options))
       console.log('data:', data)
-      chart.draw(chart, data, CHART_OPTIONS)
+      chart.draw(data, CHART_OPTIONS)
     }
 
     function updateChart(dataRow) {
       /* Update dataTable */
-      //$scope.currentPosition = getNextPosition($scope.currentPosition)
-      //$scope.netStat = new NetStat($scope.currentPosition, rand(0, 100), rand(0, 100), rand(0, 100))
-      //$scope.data.addRow($scope.netStat.toDataRow())
+
       console.log('dataRow:', dataRow)
       data.addRow(dataRow)
 
-      //      if ($scope.position >= 14) {
-      //        $scope.options.hAxis.viewWindow.min += 1
-      //        $scope.options.hAxis.viewWindow.max += 1
-      //      } else {
-      //        $scope.position += 1
-      //      }
       drawChart(chart, data, CHART_OPTIONS)
     }
 
