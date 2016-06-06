@@ -458,8 +458,8 @@ angular.module('MainApp')
 
 
         $scope.positionWithStats = null
-        $scope.currentPosition = new utils.Position(0, 0)
-        $scope.antennaPosition = new utils.Position(0, 0)
+        $scope.currentPosition = null
+        $scope.antennaPosition = null
 
 
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
@@ -662,11 +662,16 @@ angular.module('MainApp')
                 resetAntennaPosition()
               } else if (!angular.equals(newValue, oldValue)) {
                 console.log('They are different!')
+                console.log('newValue:', newValue.toString())
+                console.log('oldValue:', oldValue.toString())
                 if (newValue.x === oldValue.x) {
+                  console.log('moving Y')
                   moveAntennaY(newValue.y)
                 } else if (newValue.y === oldValue.y){
+                  console.log('moving X')
                   moveAntennaX(newValue.x)
                 } else {
+                  console.log('moving XY')
                   moveAntennaXY(newValue)
                 }
               }
