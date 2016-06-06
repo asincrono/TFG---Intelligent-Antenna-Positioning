@@ -461,7 +461,7 @@ angular.module('MainApp')
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
 
         // Start data transfer
-        startDataTransfer(10, 3000)
+        curlProcess = tartDataTransfer(10, 3000 )
 
         setDeviceSelectionMenu()
 
@@ -683,7 +683,7 @@ angular.module('MainApp')
 
       self.stop = function stop() {
         // Stop curl executor
-        $scope.executor.quit()
+        curlProcess.quit()
 
         // Deregister watchers.
         WatcherTracker.cleanWatchers()
