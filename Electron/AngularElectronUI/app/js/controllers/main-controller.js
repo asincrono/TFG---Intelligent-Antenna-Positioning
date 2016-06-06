@@ -622,7 +622,7 @@ angular.module('MainApp')
         WatcherTracker.startWatchers()
 
         let afterWifiReadings = function() {
-          console.log('(afterReadings) mode:', mode)
+          console.log('(afterReadings) mode:', $scope.mode)
           if ($scope.mode === 'auto') {
             $scope.currentPosition.next($scope.rows, $scope.columns)
           } else {
