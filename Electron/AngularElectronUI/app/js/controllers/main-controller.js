@@ -84,6 +84,8 @@ angular.module('MainApp')
 
       let self = this
 
+      let curlProcess
+
       function setDeviceSelectionMenu() {
         let selectDevice = {
           label: 'Select device',
@@ -120,6 +122,59 @@ angular.module('MainApp')
         let selectDeviceMenu = new MenuItem(selectDevice)
         appMenu.insert(3, selectDeviceMenu)
         Menu.setApplicationMenu(appMenu)
+      }
+
+      /**Runs a command in an Executor object. If an error occours after delay
+       * it will try to run the command again up to a maximum of maxTries.
+       *
+       * @param  {String} cmd      The command to be executed.
+       * @param  {array} args     Array of strings with the command args.
+       * @param  {number} maxTries Max number of retries. 0 will retry without end.
+       * @param  {number} delay    Milliseconsd between retries.
+       * @return {object}          Executor object that will stop the command execution.
+       */
+      function runCmdOnExecutor(cmd, args, maxTries, delay) {
+        let tryCount = 0
+          // Initiate the curl command data transmission
+        let executor = new utils.Executor(cmd, args, (err, stdout, stderr) => {
+          if (err) {
+            console.log(err)
+            tryCount += 1
+            if (maxTries && tryCount < maxTries) {
+              // Try to determine if the error was cause a kill or quit signal
+              // and prevent to retry
+              tryCount += 1
+              if (delay) {
+                $timeout(function() {
+                  executor.run()
+                })
+              } else {
+                executor.run()
+              }
+            }
+          } else {
+            if (stdout) {
+              console.log('curl stdout:', stdout)
+            }
+            if (stderr) {
+              console.log('curl stderr:', stderr)
+            }
+          }
+        })
+
+        executor.run()
+
+        return executor
+      }
+
+      /**
+       * Starts a data transfer. If error will retry up to maxTries with a delay between tries.
+       * @param  {number} maxTries Max number of tries.
+       * @param  {number} delay    Delay in milliseconsds between tries.
+       * @return {object}          Executor that can be stoped of killed.
+       */
+      function startDataTransfer(maxTries, delay) {
+        return runCmdOnExecutor(CURL_CMD, CURL_ARGS, maxTries, delay)
       }
 
       function genMXYMsg(position, rows, cols, args) {
@@ -382,11 +437,6 @@ angular.module('MainApp')
 
 
       function init() {
-        // List of deregistration functions to be able to stop watchers.
-        // Every time we stablish a watcher we add it's returned deregistration
-        // function to the list.
-        // Specially in the nested controllers.
-
         // Configuration
         $scope.configuration = {
           mode: 'auto',
@@ -409,6 +459,9 @@ angular.module('MainApp')
         $scope.tempStats = undefined
 
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
+
+        // Start data transfer
+        startDataTransfer(10, 3000)
 
         setDeviceSelectionMenu()
 
@@ -478,21 +531,6 @@ angular.module('MainApp')
           }
         })
 
-        // Initiate the curl command data transmission
-        $scope.executor = new utils.Executor(CURL_CMD, CURL_ARGS, (err, stdout, stderr) => {
-          if (err) {
-            console.log(err)
-          } else {
-            if (stdout) {
-              console.log('curl stdout:', stdout)
-            }
-            if (stderr) {
-              console.log('curl stderr:', stderr)
-            }
-          }
-        })
-        $scope.executor.run()
-          // First bitrate check.
         checkBitrate()
 
         //       Try to connect
@@ -510,51 +548,18 @@ angular.module('MainApp')
       $scope.test = function() {
 
         NetInfo.getRxTxStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
-            if (err) {
-              console.log(err)
-            } else {
-              console.log(receive)
-              console.log(transmit)
-              console.log(new Date(timestamp))
-              $scope.pbsCheck = {
-                bytes: receive.bytes,
-                timestamp: timestamp
-              }
+          if (err) {
+            console.log(err)
+          } else {
+            console.log(receive)
+            console.log(transmit)
+            console.log(new Date(timestamp))
+            $scope.pbsCheck = {
+              bytes: receive.bytes,
+              timestamp: timestamp
             }
-          })
-          //      let serialport = require('serialport')
-          //      serialport.list((err, ports) => {
-          //        console.log('err:', err)
-          //        console.log('ports:', ports)
-          //      })
-
-
-
-
-        // TESTING parseArduinoMsg
-        //      let positions = []
-        //      for (let i = 0; i < 100; i += 10) {
-        //        for (let j = 0; j < 100; j += 10) {
-        //          positions.push({x: i, y: j})
-        //        }
-        //      }
-        //      let newPos
-        //      positions.forEach((position, idx, arr) => {
-        //        newPos = parseArduinoMsg(`${position.x}, ${position.y}`)
-        //        console.log(`${position.x}, ${position.y} = ${newPos.toString()}`)
-        //      })
-        //      let position
-        //      for (let i = 0; i < 100; i += 10) {
-        //        try {
-        //          position = utils.percentCoordToDec(i, DEFAULTS.rows, DEFAULTS.motorTolerance)
-        //          console.log(`${i} % -> ${position}`)
-        //        }
-        //        catch (ex) {
-        //          console.log ('Exception:', ex)
-        //        }
-        //      }
-
-
+          }
+        })
       }
 
       function checkBitrate(callback) {
@@ -634,35 +639,35 @@ angular.module('MainApp')
           switch ($scope.configuration.mode) {
             case 'auto':
               console.log('Starting in auto mode...')
-              /* As this watcher will depend on the mode, won't be persistent */
+                /* As this watcher will depend on the mode, won't be persistent */
               WatcherTracker.registerWatcher($scope,
-                (scope) => {
-                  return scope.currentPosition
-                }, (newValue, oldValue) => {
-                  console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
-                  if (newValue) {
-                    if (newValue.x === 0 && newValue.y === 0) {
-                      // We ensure that we start at X = 0, y = 0
-                      resetAntennaPosition(500)
-                    } else if (oldValue) {
-                      if (newValue.x != oldValue.x) {
-                        //console.log('Moving X to: ', newValue.x)
-                        moveAntennaX(newValue.x, $scope.rows)
-                      } else if (newValue.y != oldValue.y) {
-                        //console.log('Moving Y to', newValue.y)
-                        moveAntennaY(newValue.y, $scope.columns)
+                  (scope) => {
+                    return scope.currentPosition
+                  }, (newValue, oldValue) => {
+                    console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
+                    if (newValue) {
+                      if (newValue.x === 0 && newValue.y === 0) {
+                        // We ensure that we start at X = 0, y = 0
+                        resetAntennaPosition(500)
+                      } else if (oldValue) {
+                        if (newValue.x != oldValue.x) {
+                          //console.log('Moving X to: ', newValue.x)
+                          moveAntennaX(newValue.x, $scope.rows)
+                        } else if (newValue.y != oldValue.y) {
+                          //console.log('Moving Y to', newValue.y)
+                          moveAntennaY(newValue.y, $scope.columns)
+                        }
                       }
+                    } else {
+                      // We reached the end of the cicle
+                      console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
+                      resetAntennaPosition(1500)
+                      stop()
                     }
-                  } else {
-                    // We reached the end of the cicle
-                    console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
-                    resetAntennaPosition(1500)
-                    stop()
-                  }
-                },
-                true,
-                false
-              )
+                  },
+                  true,
+                  false
+                )
                 // Start of the sequence.
               $scope.currentPosition = new utils.Position(0, 0)
               break
@@ -682,7 +687,7 @@ angular.module('MainApp')
 
         // Deregister watchers.
         WatcherTracker.cleanWatchers()
-        //disconnect()
+          //disconnect()
 
         $scope.started = false
       }
