@@ -228,7 +228,7 @@ angular.module('MainApp')
           let x = conversion.percentCoordToDec(Number(coords[0]), tolerance, rows)
           let y = conversion.percentCoordToDec(Number(coords[1]), tolerance, columns)
           let position = new utils.Position(x, y)
-          consolel.log('parseArduinoMsg position:', position)
+          console.log('parseArduinoMsg position:', position)
           return position
         }
       }
