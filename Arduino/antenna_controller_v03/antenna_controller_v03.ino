@@ -120,7 +120,6 @@ void mv_motor(byte motor_n, byte dest, byte tol, byte base_speed, byte max_speed
 
 void moveXY(byte dest_x, byte dest_y, byte tol, byte motor_speed, word del, byte max_tries) {
   moveX(dest_x, tol, motor_speed, motor_speed, del, max_tries);
-  delay(1000);
   moveY(dest_y, tol, motor_speed, motor_speed, del, max_tries);
 }
 

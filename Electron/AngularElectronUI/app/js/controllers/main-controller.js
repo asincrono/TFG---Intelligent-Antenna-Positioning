@@ -228,7 +228,6 @@ angular.module('MainApp')
           let x = conversion.percentCoordToDec(Number(coords[0]), tolerance, rows)
           let y = conversion.percentCoordToDec(Number(coords[1]), tolerance, columns)
           let position = new utils.Position(x, y)
-          console.log('parseArduinoMsg position:', position)
           return position
         }
       }
@@ -405,6 +404,7 @@ angular.module('MainApp')
 
       function wifiReadings(timeout, delay, readings, callback) {
         let netStatsList = []
+        console.log('wifiReadings Starting readings')
 
         let afterReadings = function() {
           let netStats = genMeanNetStats(netStatsList)
@@ -466,7 +466,6 @@ angular.module('MainApp')
 
         // Start data transfer
         curlProcess = startDataTransfer(10, 3000)
-        checkBitrate()
 
         // Stop process on application end.
         app.on('quit', () => {
@@ -602,7 +601,6 @@ angular.module('MainApp')
                 bytes: bytes,
                 timestamp: timestamp
               }
-              console.log('checkBitrate rxStats:', $scope.rxStats)
               if (callback) {
                 // console.log('(mainCtrl) checkBitrate calling callback.')
                 callback()
@@ -613,8 +611,9 @@ angular.module('MainApp')
       }
 
       self.start = function start() {
-        console.log('starting...')
         $scope.started = true
+        checkBitrate()
+        console.log('starting...')
         console.log('connected:', $scope.connected)
         console.log('mode:', $scope.configuration.mode)
 
@@ -659,15 +658,19 @@ angular.module('MainApp')
           }, (newValue, oldValue) => {
             console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
             if (newValue) {
-              if (newValue.x === 0 && newValue.y === 0) {
-                // We ensure that we start at X = 0, y = 0
-                resetAntennaPosition(500)
-              } else {
-                moveAntennaXY(newValue)
-              }
+              moveAntennaXY(newValue)
+
+              // if (newValue.x === 0 && newValue.y === 0) {
+              //   // We ensure that we start at X = 0, y = 0
+              //   resetAntennaPosition(500)
+              // } else {
+              //   console.log('moving atenna to ', newValue)
+              //   moveAntennaXY(newValue)
+              // }
+              //
             } else {
               // We reached the end of the cicle
-              // console.log('(mainCtrl) currentPosition:', $scope.currentPosition)
+              console.log('The end.')
               self.stop()
               resetAntennaPosition(1000)
             }
@@ -686,7 +689,6 @@ angular.module('MainApp')
           case 'manual':
             console.log('starting in manual...')
             let [x, y] = parsePosition($scope.manualPosition)
-              // $scope.currentPosition = new utils.Position(x, y)
             $scope.currentPosition = new utils.Position(x, y)
             break
         }
