@@ -108,7 +108,8 @@ angular.module('MainApp')
       }
     }
 
-    function drawGraph(chart, data, options) {
+    function drawChart(chart, data, options) {
+      console.log('data:', data)
       chart.draw(data, options)
     }
 
@@ -119,7 +120,7 @@ angular.module('MainApp')
       //data.addColumn('string', 'Position')
       data.addColumn('number', 'Position')
       data.addColumn('number', 'Level', 'level')
-      data.addColumn('number', 'Noise', 'noise')
+      data.addColumn('number', 'Bitrate', 'bitrate')
 
       chart = new google.visualization.LineChart(document.getElementById('linechart'))
         //      let chart = new google.charts.Line(document.getElementById('linechart'))
@@ -128,7 +129,7 @@ angular.module('MainApp')
       chart.draw(chart, data, CHART_OPTIONS)
     }
 
-    function updateGraph(dataRow) {
+    function updateChart(dataRow) {
       /* Update dataTable */
       //$scope.currentPosition = getNextPosition($scope.currentPosition)
       //$scope.netStat = new NetStat($scope.currentPosition, rand(0, 100), rand(0, 100), rand(0, 100))
@@ -142,7 +143,7 @@ angular.module('MainApp')
       //      } else {
       //        $scope.position += 1
       //      }
-      drawGraph(chart, data, CHART_OPTIONS)
+      drawChart(chart, data, CHART_OPTIONS)
     }
 
     function reset() {
@@ -181,9 +182,8 @@ angular.module('MainApp')
           if (newValue) {
             if (chart) {
               console.log('AntennaPosition(graphCtrl)', $scope.antennaPosition)
-                //updateGraph([$scope.antennaPosition.toString(), newValue.level, newValue.noise])
               console.log('pos:', $scope.antennaPosition, 'number:', positionToNumber($scope.antennaPosition, $scope.rows))
-              updateGraph([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.bitrate.rx])
+              updateChart([positionToNumber($scope.antennaPosition, $scope.rows, $scope.columns), newValue.level, newValue.bitrate.rx])
             }
           }
         },
