@@ -581,9 +581,11 @@ angular.module('MainApp')
                 console.log('(mainCtrl) elapsedTime:', elapsedTime)
                 let receivedBytes = (bytes - $scope.rxStats.bytes)
                 console.log('(mainCtrl) receivedBytes:', receivedBytes)
+                // we read bytes we need to turn in bits * 8 (-> bps)
+                // we read milliseconsds we need to turn in secons / 1000 (-> bps)
                 let bps = (receivedBytes * 8) * (elapsedTime / 1000)
                 $scope.bitrate = conversion.bps2Mbps(bps) // Mbit/s
-                console.log('(mainCtrl) ($scope.)bitrate:', $scope.bitrate)
+                console.log('(mainCtrl) ($scope.)bitrate(Mbps):', $scope.bitrate)
               } else {
                 console.log('(mainCtrl) checkBitrate rxStats was undefined')
                 $scope.bitrate = 0

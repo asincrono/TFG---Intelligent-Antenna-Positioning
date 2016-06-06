@@ -2,16 +2,57 @@ angular.module('MainApp')
   .controller('ChartController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
     'use strict'
 
-    function genHticks(rows, columns) {
+    function positionToNumber(position, rows, columns) {
+      let left = position.x % 2
+      if (left) {
+        return position.x * rows + (columns - position.y - 1)
+      } else {
+        return position.x * rows + position.y
+      }
+    }
+
+    /* Generator to generate objects with the pair value, format for the
+    hAxis ticks values.*/
+    function* positionTextGen(rows, columns) {
+      let limit = rows * columns
+      let position = 0
+      let x = 0
+      let y = 0
+      while (position < limit) {
+        yield({
+          v: position,
+          f: `${x}, ${y}`
+        })
+
+        if (x % 2 === 0) {
+          y += 1
+          if (y === columns) {
+            y -= 1
+            x += 1
+          }
+        } else {
+          y -= 1
+          if (y === -1) {
+            y += 1
+            x += 1
+          }
+        }
+        position += 1
+      }
+    }
+
+    function genHTicks(rows, columns) {
       let hticks = []
       let pairValFormat = positionTextGen(rows, columns)
       let hTicks = []
+
       let pair = pairValFormat.next().value
 
       while (pair) {
         hTicks.push(pair)
         pair = pairValFormat.next().value
       }
+      console.log('hticks:', hticks)
       return hticks
     }
 
@@ -27,8 +68,8 @@ angular.module('MainApp')
       },
 
       hAxis: {
-        ticks: genHticks($scope.rows, $scope.columns),
         title: 'Positions',
+        ticks: genHTicks($scope.rows, $scope.columns),
         viewWindow: {
           min: 0,
           max: 15
@@ -72,47 +113,7 @@ angular.module('MainApp')
     let position
     let rowPos
 
-    function positionToNumber(position, rows, columns) {
-      let left = position.x % 2
-      if (left) {
-        return position.x * rows + (columns - position.y - 1)
-      } else {
-        return position.x * rows + position.y
-      }
-    }
-
-    /* Generator to generate objects with the pair value, format for the
-    hAxis ticks values.*/
-    function* positionTextGen(rows, columns) {
-      let limit = rows * columns
-      let position = 0
-      let x = 0
-      let y = 0
-      while (position < limit) {
-        yield({
-          v: position,
-          f: `${x}, ${y}`
-        })
-
-        if (x % 2 === 0) {
-          y += 1
-          if (y === columns) {
-            y -= 1
-            x += 1
-          }
-        } else {
-          y -= 1
-          if (y === -1) {
-            y += 1
-            x += 1
-          }
-        }
-        position += 1
-      }
-    }
-
     function drawChart(chart, data, options) {
-      console.log('data:', data)
       chart.draw(data, options)
     }
 
@@ -136,19 +137,12 @@ angular.module('MainApp')
       })
 
       chart = new google.visualization.LineChart(document.getElementById('linechart'))
-        //      let chart = new google.charts.Line(document.getElementById('linechart'))
-
-      //      chart.draw(data, google.charts.Line.convertOptions(options))
-      console.log('data:', data)
       chart.draw(data, CHART_OPTIONS)
     }
 
     function updateChart(dataRow) {
       /* Update dataTable */
-
-      console.log('dataRow:', dataRow)
       data.addRow(dataRow)
-
       drawChart(chart, data, CHART_OPTIONS)
     }
 
