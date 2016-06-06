@@ -2,6 +2,18 @@ angular.module('MainApp')
   .controller('ChartController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
     'use strict'
 
+    function genHticks(rows, columns) {
+        let pairValFormat = positionTextGen(rows, columns)
+        let hTicks = []
+        let pair = pairValFormat.next().value
+
+        while (pair) {
+            hTicks.push(pair)
+            pair = pairValFormat.next().value
+        }
+        return hticks
+    }
+
     const CHART_OPTIONS = {
       title: 'Signal stats for different antenna positions',
 
@@ -13,7 +25,7 @@ angular.module('MainApp')
         1: {targetAxisIndex: 1}
       },
       hAxis: {
-        ticks: hTicks,
+        ticks: genHticks($scope.rows, $scope.columns),
         title: 'Positions',
         viewWindow: {
           min: 0,
@@ -100,15 +112,6 @@ angular.module('MainApp')
     }
 
     function initChart() {
-
-      let pairValFormat = positionTextGen($scope.rows, $scope.columns)
-      let hTicks = []
-      let pair = pairValFormat.next().value
-
-      while (pair) {
-        hTicks.push(pair)
-        pair = pairValFormat.next().value
-      }
 
       data = new google.visualization.DataTable()
 
