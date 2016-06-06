@@ -461,7 +461,7 @@ angular.module('MainApp')
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
 
         // Start data transfer
-        curlProcess = tartDataTransfer(10, 3000 )
+        curlProcess = startDataTransfer(10, 3000 )
 
         setDeviceSelectionMenu()
 
