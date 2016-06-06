@@ -83,13 +83,13 @@
           <thead>
             <tr>
               <th>Position</th>
-              <th>Signal</th>
+              <th>Level</th>
               <th>Mbps</th>
             </tr>
             <tr>
               <td ng-bind="currentPosition.toString()">position</td>
               <td ng-bind="netStats.level">level</td>
-              <td ng-bind="bitrate">bitrate</td>
+              <td ng-bind="netStats.bitrate.rx">bitrate</td>
             </tr>
           </thead>
         </table>

@@ -77,7 +77,7 @@ angular.module('MainApp')
 
       const MSG_ARGS_MOTOR_Y = {
         tolerance: 5,
-        baseSpeed: 200,
+        baseSpeed: 250,
         maxSpeed: 250,
         pollDelay: 15,
         maxTries: 50
@@ -358,7 +358,9 @@ angular.module('MainApp')
           checkBitrate(() => {
             console.log('(mainCtrl) checkBitrate-callback changing $scope.nestStats.')
             netStats.bitrate.rx = $scope.bitrate
-            $scope.netStats = netStats
+            $scope.$apply(() => {
+              $scope.netStats = netStats
+            })
           })
 
           callback(netStatsList)
