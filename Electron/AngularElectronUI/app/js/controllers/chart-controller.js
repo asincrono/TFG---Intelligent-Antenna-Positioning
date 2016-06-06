@@ -16,7 +16,7 @@ angular.module('MainApp')
     }
 
     const CHART_OPTIONS = {
-      title: 'Signal stats for different antenna positions',
+      title: 'Signal stats and bitrate for different antenna positions',
 
       //        width: 1150,
       //        height: 600,
@@ -25,6 +25,7 @@ angular.module('MainApp')
         0: {targetAxisIndex: 0},
         1: {targetAxisIndex: 1}
       },
+
       hAxis: {
         ticks: genHticks($scope.rows, $scope.columns),
         title: 'Positions',
@@ -137,7 +138,7 @@ angular.module('MainApp')
       //$scope.currentPosition = getNextPosition($scope.currentPosition)
       //$scope.netStat = new NetStat($scope.currentPosition, rand(0, 100), rand(0, 100), rand(0, 100))
       //$scope.data.addRow($scope.netStat.toDataRow())
-
+      console.log('dataRow:', dataRow)
       data.addRow(dataRow)
 
       //      if ($scope.position >= 14) {
