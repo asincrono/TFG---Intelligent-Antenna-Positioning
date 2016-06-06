@@ -578,7 +578,7 @@ angular.module('MainApp')
               if ($scope.rxStats) {
                 console.log('(mainCtrl) checkBitrate rxStats:', $scope.rxStats)
                 let elapsedTime = timestamp - $scope.rxStats.timestamp
-                console.log('(mainCtrl) elapsedTime:', Math.trunc(ElapsedTime / 1000))
+                console.log('(mainCtrl) elapsedTime:', Math.trunc(elapsedTime / 1000))
                 let receivedBytes = (bytes - $scope.rxStats.bytes)
                 console.log('(mainCtrl) receivedBytes:', receivedBytes)
                 // we read bytes we need to turn in bits * 8 (-> bps)
