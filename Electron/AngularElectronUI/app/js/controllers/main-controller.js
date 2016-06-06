@@ -682,7 +682,7 @@ angular.module('MainApp')
               console.log('starting in manual...')
               let [x, y] = parsePosition($scope.manualPosition)
               // $scope.currentPosition = new utils.Position(x, y)
-              $scope.currentPosition = new utils.Position(y, y)
+              $scope.currentPosition = new utils.Position(x, y)
               break
           }
 

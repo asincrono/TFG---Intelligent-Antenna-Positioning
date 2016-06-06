@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
+#include <Adafruit_PWMServoDriver.h>
+//#include "utility/Adafruit_PWMServoDriver.h>
 
 #define POT_MAX_VAL 1024
 #define POT_MIN_VAL 0
@@ -50,10 +51,7 @@ void moveX(byte dest, byte tol, byte base_speed, byte max_speed, word del, byte 
   // if pos == 0 -> motor_speed = base_speed.
   byte motor_speed = base_speed + (posY / 99.0) * speed_diff;
   motorX->setSpeed(motor_speed);
-  /*
-  Serial.print("Motor speed: ");
-  Serial.println(motor_speed);
-  */
+
   byte tries = 0;
 
   int diff = dest - posX;
@@ -87,10 +85,7 @@ void moveY(byte dest, byte tol, byte base_speed, byte max_speed, word del, byte 
   // if pos == 99 -> motor_speed = base_speed.
   byte motor_speed = base_speed + ((99 - posX) / 99.0) * speed_diff;
   motorY->setSpeed(motor_speed);
-  /*
-  Serial.print("Motor speed: ");
-  Serial.println(motor_speed);
-  */
+
   byte tries = 0;
   int diff = dest - posY;
   boolean reached = abs(diff) <= tol;
@@ -125,62 +120,9 @@ void mv_motor(byte motor_n, byte dest, byte tol, byte base_speed, byte max_speed
 
 void moveXY(byte dest_x, byte dest_y, byte tol, byte motor_speed, word del, byte max_tries) {
   moveX(dest_x, tol, motor_speed, motor_speed, del, max_tries);
-  delay(500);
+  delay(1000);
   moveY(dest_y, tol, motor_speed, motor_speed, del, max_tries);
 }
-
-void moveXYOld(byte dest_x, byte dest_y, byte tol, byte motor_speed, word del, byte max_tries) {
-  int diff_x = dest_x - getPosX();
-  int diff_y = dest_y - getPosY();
-
-  boolean reached_x = abs(diff_x) <= tol;
-  boolean reached_y = abs(diff_y) <= tol;
-
-  Serial.print("tol: ");
-  Serial.print(tol);
-  Serial.print(", motor_speed: ");
-  Serial.print(motor_speed);
-  Serial.print(", del: ");
-  Serial.print(del);
-  Serial.print(", max_tries: ");
-  Serial.println(max_tries);
-
-  motorX->setSpeed(motor_speed);
-  motorY->setSpeed(motor_speed);
-
-  byte tries = 0;
-
-  while  ((!reached_x || !reached_y) && (tries <= max_tries)) {
-    tries += 1;
-    if (!reached_x) {
-      //Serial.println("moving x?");
-      if (diff_x > 0) {
-        motorX->run(FORWARD);
-      } else {
-        motorX->run(BACKWARD);
-      }
-    }
-    if (!reached_y) {
-      //Serial.println("moving y?");
-      if (diff_y > 0) {
-        motorY->run(FORWARD);
-      } else {
-        motorY->run(BACKWARD);
-      }
-    }
-
-    delay(del);
-
-    diff_x = dest_x - getPosX();
-    diff_y = dest_y - getPosY();
-
-    reached_x = abs(diff_x) <= tol;
-    reached_y = abs(diff_y) <= tol;
-  }
-  motorX->run(RELEASE);
-  motorY->run(RELEASE);
-}
-
 
 /* Reads a message as a "String" form serial port.
 Serial.setTimeout() needed.*/
