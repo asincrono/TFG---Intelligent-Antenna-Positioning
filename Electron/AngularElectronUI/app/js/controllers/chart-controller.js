@@ -77,13 +77,13 @@ angular.module('MainApp')
       vAxes: {
         0: {
           title: 'Level',
-          minValue: -100,
-          maxValue: 0
+          // minValue: -100,
+          // maxValue: 0
         },
         1: {
           title: 'Bitrate (Mbps)',
-          minValue: 0,
-          maxValue: 450,
+          // minValue: 0,
+          // maxValue: 450,
         }
       },
 
@@ -177,6 +177,7 @@ angular.module('MainApp')
         (newValue, oldValue) => {
           if (newValue) {
             if (chart) {
+              console.log('(chartCtrl) $scope.netStas.bitrate.rx', $scope.netStas.bitrate.rx)
               updateChart([positionToNumber($scope.antennaPosition,
                 $scope.rows, $scope.columns),
                 newValue.level, newValue.bitrate.rx])
