@@ -356,11 +356,9 @@ angular.module('MainApp')
             then we set the scope netstas value.
             */
           checkBitrate(() => {
-            console.log('(mainCtrl) checkBitrate-callback changing $scope.nestStats.')
+            console.log('(mainCtrl) checkBitrate:', bitrate)
             netStats.bitrate.rx = $scope.bitrate
-            $scope.$apply(() => {
-              $scope.netStats = netStats
-            })
+            $scope.netStats = netStats
           })
 
           callback(netStatsList)
@@ -576,16 +574,22 @@ angular.module('MainApp')
           if (err) {
             console.log(err)
           } else {
+            let elapsedTime
+            let receivedBytes
+            let bps
             $scope.$apply(function() {
               if ($scope.rxStats) {
                 console.log('(mainCtrl) checkBitrate rxStats:', $scope.rxStats)
-                let elapsedTime = timestamp - $scope.rxStats.timestamp
-                console.log('(mainCtrl) elapsedTime:', Math.trunc(elapsedTime / 1000))
-                let receivedBytes = (bytes - $scope.rxStats.bytes)
+
+                receivedBytes = (bytes - $scope.rxStats.bytes)
                 console.log('(mainCtrl) receivedBytes:', receivedBytes)
+
+                elapsedTime = timestamp - $scope.rxStats.timestamp
+                console.log('(mainCtrl) elapsedTime:', Math.trunc(elapsedTime / 1000))
+
                 // we read bytes we need to turn in bits * 8 (-> bps)
                 // we read milliseconsds we need to turn in secons / 1000 (-> bps)
-                let bps = (receivedBytes * 8) * (elapsedTime / 1000)
+                bps = Math.trunc((receivedBytes * 8) / (elapsedTime / 1000))
                 $scope.bitrate = conversion.bps2Mbps(bps) // Mbit/s
                 console.log('(mainCtrl) ($scope.)bitrate(Mbps):', $scope.bitrate)
               } else {
@@ -597,6 +601,7 @@ angular.module('MainApp')
                 bytes: bytes,
                 timestamp: timestamp
               }
+              console.log('checkBitrate rxStats:', rxStats)
               if (callback) {
                 console.log('(mainCtrl) checkBitrate calling callback.')
                 callback()
