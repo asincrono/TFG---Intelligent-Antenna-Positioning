@@ -658,16 +658,15 @@ angular.module('MainApp')
           }, (newValue, oldValue) => {
             console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
             if (newValue) {
-              moveAntennaXY(newValue)
-
-              // if (newValue.x === 0 && newValue.y === 0) {
-              //   // We ensure that we start at X = 0, y = 0
-              //   resetAntennaPosition(500)
-              // } else {
-              //   console.log('moving atenna to ', newValue)
-              //   moveAntennaXY(newValue)
-              // }
-              //
+              if (!angular.equals(newValue, oldValue)) {
+                if (newValue.x === oldValue.x) {
+                  moveAntennaY(newValue.y)
+                } else if (newValue.y === oldValue.y){
+                  moveAntennaX(newValue.x)
+                } else {
+                  moveAntennaXY(newValue)
+                }
+              }
             } else {
               // We reached the end of the cicle
               console.log('The end.')
