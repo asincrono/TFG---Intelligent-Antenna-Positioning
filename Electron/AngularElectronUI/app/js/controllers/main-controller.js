@@ -658,7 +658,7 @@ angular.module('MainApp')
                   // We ensure that we start at X = 0, y = 0
                   resetAntennaPosition(500)
                 } else if (oldValue) {
-                  moveAntennaXY(newValue.x, newValue.y)
+                  moveAntennaXY(newValue)
                 }
               } else {
                 // We reached the end of the cicle
