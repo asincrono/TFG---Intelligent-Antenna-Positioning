@@ -641,6 +641,7 @@ angular.module('MainApp')
           (scope) => {
             return scope.antennaPosition
           }, (newValue, oldValue) => {
+            console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
             if (newValue) {
               // timeout, delay, readings, filePath, callback)
               wifiReadings(1500,
@@ -694,13 +695,11 @@ angular.module('MainApp')
 
       self.stop = function stop() {
         // Stop curl executor
+        $scope.started = false
         curlProcess.quit()
 
         // Deregister watchers.
-        WatcherTracker.cleanWatchers()
-          //disconnect()
-
-        $scope.started = false
+        WatcherTracker.stopWatchers()    
       }
 
       init()

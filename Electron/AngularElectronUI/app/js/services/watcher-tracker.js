@@ -38,6 +38,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
   function stopWatchers() {
     watchList.forEach((watch) => {
+      console.log('Deregistering:', watch)
       watch.deregister()
     })
   }
