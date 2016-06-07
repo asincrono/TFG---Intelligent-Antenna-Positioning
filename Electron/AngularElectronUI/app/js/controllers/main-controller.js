@@ -409,7 +409,7 @@ angular.module('MainApp')
 
         let afterSuccess = function() {
           let netStats = calcMeanNetStats(netStatsList)
-          NetInfo.checkBitrate((err, bitrate) => {
+          NetInfo.checkRxBitrate((err, bitrate) => {
             let bps = bitrate * 8
 
             netStats.bitrate.rx = conversion.bps2Mbps(bps)
