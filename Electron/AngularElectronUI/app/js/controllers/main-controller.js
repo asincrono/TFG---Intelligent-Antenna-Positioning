@@ -682,7 +682,7 @@ angular.module('MainApp')
               resetAntennaPosition(1000)
             }
           },
-          true,
+          false,
           false
         )
 
