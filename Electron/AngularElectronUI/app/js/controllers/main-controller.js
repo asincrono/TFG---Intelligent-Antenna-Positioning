@@ -653,7 +653,8 @@ angular.module('MainApp')
           scope => scope.p1,
           (oldValue, newValue) => {
             console.log(`p1 new ${newValue}, old ${oldValue}.`)
-          }
+          },
+          true
         )
         $scope.p1.set(0, 0)
         $timeout(() => {$scope.p1.set(1, 1)}, 1)
