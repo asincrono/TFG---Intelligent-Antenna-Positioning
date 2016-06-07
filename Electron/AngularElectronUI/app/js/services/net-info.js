@@ -68,9 +68,9 @@ angular.module('MainApp')
           let bitrate = null
           if (rxStamp) {
             let bitrate = rxStamp.getBitrate(newRxStamp)
-            rxStamp.update()
-          } else {
             rxStamp.update(bytes, timestamp)
+          } else {
+            rxStamp = new RxStamp(bytes, timestamp)
           }
           if (callback) {
             callback(null, bitrate)
