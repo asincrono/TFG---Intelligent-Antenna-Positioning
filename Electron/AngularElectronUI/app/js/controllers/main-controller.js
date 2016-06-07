@@ -735,7 +735,7 @@ angular.module('MainApp')
               // Start of the sequence.
               // $scope.currentPosition = new utils.Position(0, 0)
             $scope.currentPosition = new utils.Position(0, 0)
-            console.log('just canged currentPosition:', currentPosition)
+            console.log('just canged currentPosition:', $scope.currentPosition)
             break
           case 'manual':
             console.log('starting in manual...')
