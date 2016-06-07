@@ -491,7 +491,7 @@ angular.module('MainApp')
 
 
         $scope.positionWithStats = null
-        $scope.currentPosition = null
+        $scope.currentPosition = new utils.Position(0, 0)
         $scope.antennaPosition = null
 
 
@@ -747,7 +747,7 @@ angular.module('MainApp')
             let [x, y] = parsePosition($scope.manualPosition)
             console.log('currentPosition before: ', $scope.currentPosition)
             // $scope.currentPosition = new utils.Position(x, y)
-            $scope.currentPosition = new utils.Position(x, y)
+            $scope.currentPosition.set(x, y)
             console.log('currentPosition after: ', $scope.currentPosition)
             break
         }
