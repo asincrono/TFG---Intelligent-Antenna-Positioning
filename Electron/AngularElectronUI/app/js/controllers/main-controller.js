@@ -475,7 +475,7 @@ angular.module('MainApp')
       function init() {
         // To test at start()
         $scope.p1 = new utils.Position(0, 0)
-        // Configuration
+          // Configuration
         $scope.configuration = {
           mode: 'auto',
           numberOfReadings: 5,
@@ -657,7 +657,9 @@ angular.module('MainApp')
           true
         )
         $scope.p1.set(0, 0)
-        $timeout(() => {$scope.p1.set(1, 1)}, 1)
+        $timeout(() => {
+          $scope.p1.set(1, 1)
+        }, 1)
 
 
         $scope.started = true
@@ -754,9 +756,9 @@ angular.module('MainApp')
         switch ($scope.configuration.mode) {
           case 'auto':
             console.log('Starting in auto mode...')
-            // Start of the sequence.
-            // $scope.currentPosition = new utils.Position(0, 0)
-            // I need to use this timeout to force the watcher to see this change
+              // Start of the sequence.
+              // $scope.currentPosition = new utils.Position(0, 0)
+              // I need to use this timeout to force the watcher to see this change
 
             $timeout(() => {
               $scope.currentPosition.set(0, 0)
@@ -766,7 +768,9 @@ angular.module('MainApp')
           case 'manual':
             console.log('starting in manual...')
             let [x, y] = parsePosition($scope.manualPosition)
-            $scope.currentPosition.set(x, y)
+            $timeout(() => {
+                $scope.currentPosition.set(x, y)
+              }, 1)
               // $scope.currentPosition.set(x, y)
             break
         }
