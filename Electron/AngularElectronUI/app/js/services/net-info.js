@@ -238,7 +238,7 @@ angular.module('MainApp')
       listIfaces: listIfaces,
       NetStats: NetStats,
       getNetStats: getNetStats,
-      checkRxBitrate: checkRxBirate,
+      checkRxBitrate: checkRxBitrate,
       getRx: getRx,
       getTx: getTx,
       getRxTxStats: getRxTxStats
