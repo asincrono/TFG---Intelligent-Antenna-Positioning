@@ -659,7 +659,7 @@ angular.module('MainApp')
           console.log('configuration mode:', $scope.configuration.mode)
           if ($scope.configuration.mode === 'auto') {
             // If auto mode we proceed to the next position.
-            $scope.currentPosition.next($scope.rows, $scope.columns)
+            $scope.currentPosition = $scope.currentPosition.next($scope.rows, $scope.columns)
             console.log('new current position: ', $scope.currentPosition)
           } else {
             // We end the process here.
