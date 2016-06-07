@@ -375,18 +375,9 @@ angular.module('MainApp')
         5.- We proceed to the next position.
       */
 
-      function getMeanValue(values) {
-        let numValues = values.length
-        let total = 0
-        for (let i = 0; i < numValues; i += 1) {
-          total += values[i]
-        }
-        return total / numValues
-      }
-
       // Callback will be called after all readings done.
 
-      function genMeanNetStats(netStatsList) {
+      function calcMeanNetStats(netStatsList) {
         let meanLevel = 0
         let meanNoise = 0
         let numStats = netStatsList.length
@@ -399,44 +390,83 @@ angular.module('MainApp')
         // Sorry for this but it's so cute :)
         meanLevel /= numStats
         meanNoise /= numStats
+        meanLevel = Math.round(meanLevel * 100) / 100
+        meanNoise = Math.round(meanNoise * 100) / 100
         return new NetInfo.NetStats(meanLevel, meanNoise)
       }
 
-      function wifiReadings(timeout, delay, readings, callback) {
+      function wifiReadingsV2(timeout, delay, readings, callback) {
         let netStatsList = []
+        let count = 0
         console.log('wifiReadings Starting readings')
 
-        let afterReadings = function() {
-          let netStats = genMeanNetStats(netStatsList)
-            /* Afther this checkBitrate we modify bitrate in the netStats and
-            then we set the scope netstas value.
-            */
-          checkBitrate(() => {
-            console.log('(mainCtrl) checkBitrate:', $scope.bitrate)
-            netStats.bitrate.rx = $scope.bitrate
-            $scope.netStats = netStats
+        let reading = function() {
+          count += 1
+          NetInfo.getNetStats($scope.selectedDevice, (netStats) => {
+            netStatsList.push(netStats)
           })
+        }
 
-          callback(netStatsList)
+        let afterSuccess = function() {
+          let netStats = calcMeanNetStats(netStatsList)
+          NetInfo.checkBitrate((err, bitrate) => {
+            let bps = bitrate * 8
+
+            netStats.bitrate.rx = conversion.bps2Mbps(bps)
+            // We update netStats and save antenaPosition to file.
+            // (antennaPosition save herself on change through watcher)
+            $scope.netStats = netStats
+            $scope.positionWithStats = new utils.AntennaPosition(
+              $scope.antennaPosition.x,
+              $scope.antennaPosition.y,
+              netStats
+            )
+            if (callback) {
+              callback()
+            }
+          })
         }
 
         $timeout(() => {
-          /*
-          Clear the readings counter.
-          Empty the reading list.
-          */
-          //console.log('Inside timeout function')
-
-          $interval(() => {
-            NetInfo.getNetStats($scope.selectedDevice, (netStats) => {
-              netStatsList.push(netStats)
-              $scope.positionWithStats = new utils.AntennaPosition($scope.antennaPosition.x, $scope.antennaPosition.y, netStats)
-            })
-          }, delay, readings).then(afterReadings, (error) => {
-            console.log('WiFi readings error:', error)
-          })
+          $interval(reading, delay, readings).then(afterSuccess)
         }, timeout)
       }
+
+      // function wifiReadings(timeout, delay, readings, callback) {
+      //   let netStatsList = []
+      //
+      //
+      //   let afterReadings = function() {
+      //     let netStats = calcMeanNetStats(netStatsList)
+      //       /* Afther this checkBitrate we modify bitrate in the netStats and
+      //       then we set the scope netstas value.
+      //       */
+      //     checkBitrate(() => {
+      //       console.log('(mainCtrl) checkBitrate:', $scope.bitrate)
+      //       netStats.bitrate.rx = $scope.bitrate
+      //       $scope.netStats = netStats
+      //     })
+      //
+      //     callback(netStatsList)
+      //   }
+      //
+      //   $timeout(() => {
+      //     /*
+      //     Clear the readings counter.
+      //     Empty the reading list.
+      //     */
+      //     //console.log('Inside timeout function')
+      //
+      //     $interval(() => {
+      //       NetInfo.getNetStats($scope.selectedDevice, (netStats) => {
+      //         netStatsList.push(netStats)
+      //         $scope.positionWithStats = new utils.AntennaPosition($scope.antennaPosition.x, $scope.antennaPosition.y, netStats)
+      //       })
+      //     }, delay, readings).then(afterReadings, (error) => {
+      //       console.log('WiFi readings error:', error)
+      //     })
+      //   }, timeout)
+      // }
 
       function init() {
         // Configuration
@@ -482,6 +512,7 @@ angular.module('MainApp')
           }, (newValue, oldValue) => {
             console.log('positionWithStats: (new)', newValue, '(old)', oldValue)
             if (newValue) {
+
               newValue.appendFile($scope.fileName)
             }
           },
@@ -569,50 +600,51 @@ angular.module('MainApp')
         })
       }
 
-      function checkBitrate(callback) {
-        NetInfo.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
-          if (err) {
-            console.log(err)
-          } else {
-            let elapsedTime
-            let receivedBytes
-            let bps
-            $scope.$apply(function() {
-              if ($scope.rxStats) {
-                // console.log('(mainCtrl) checkBitrate rxStats:', $scope.rxStats)
-
-                receivedBytes = (bytes - $scope.rxStats.bytes)
-                  // console.log('(mainCtrl) receivedBytes:', receivedBytes)
-
-                elapsedTime = timestamp - $scope.rxStats.timestamp
-                  // console.log('(mainCtrl) elapsedTime:', Math.trunc(elapsedTime / 1000))
-
-                // we read bytes we need to turn in bits * 8 (-> bps)
-                // we read milliseconsds we need to turn in secons / 1000 (-> bps)
-                bps = Math.trunc((receivedBytes * 8) / (elapsedTime / 1000))
-                $scope.bitrate = conversion.bps2Mbps(bps) // Mbit/s
-                  // console.log('(mainCtrl) ($scope.)bitrate(Mbps):', $scope.bitrate)
-              } else {
-                // console.log('(mainCtrl) checkBitrate rxStats was undefined')
-                $scope.bitrate = 0
-              }
-
-              $scope.rxStats = {
-                bytes: bytes,
-                timestamp: timestamp
-              }
-              if (callback) {
-                // console.log('(mainCtrl) checkBitrate calling callback.')
-                callback()
-              }
-            })
-          }
-        })
-      }
+      // function checkBitrate(callback) {
+      //   NetInfo.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
+      //     if (err) {
+      //       console.log(err)
+      //     } else {
+      //       let elapsedTime
+      //       let receivedBytes
+      //       let bps
+      //       $scope.$apply(function() {
+      //         if ($scope.rxStats) {
+      //           // console.log('(mainCtrl) checkBitrate rxStats:', $scope.rxStats)
+      //
+      //           receivedBytes = (bytes - $scope.rxStats.bytes)
+      //             // console.log('(mainCtrl) receivedBytes:', receivedBytes)
+      //
+      //           elapsedTime = timestamp - $scope.rxStats.timestamp
+      //             // console.log('(mainCtrl) elapsedTime:', Math.trunc(elapsedTime / 1000))
+      //
+      //           // we read bytes we need to turn in bits * 8 (-> bps)
+      //           // we read milliseconsds we need to turn in secons / 1000 (-> bps)
+      //           bps = Math.trunc((receivedBytes * 8) / (elapsedTime / 1000))
+      //           $scope.bitrate = conversion.bps2Mbps(bps) // Mbit/s
+      //             // console.log('(mainCtrl) ($scope.)bitrate(Mbps):', $scope.bitrate)
+      //         } else {
+      //           // console.log('(mainCtrl) checkBitrate rxStats was undefined')
+      //           $scope.bitrate = 0
+      //         }
+      //
+      //         $scope.rxStats = {
+      //           bytes: bytes,
+      //           timestamp: timestamp
+      //         }
+      //         if (callback) {
+      //           // console.log('(mainCtrl) checkBitrate calling callback.')
+      //           callback()
+      //         }
+      //       })
+      //     }
+      //   })
+      // }
 
       self.start = function start() {
         $scope.started = true
-        checkBitrate()
+        // checkBitrate()
+
         console.log('starting...')
         console.log('connected:', $scope.connected)
         console.log('mode:', $scope.configuration.mode)
@@ -622,10 +654,12 @@ angular.module('MainApp')
         WatcherTracker.startWatchers()
 
         let afterWifiReadings = function() {
-          console.log('(afterReadings) mode:', $scope.configuration.mode)
+          console.log('(afterReadings)')
           if ($scope.configuration.mode === 'auto') {
+            // If auto mode we proceed to the next position.
             $scope.currentPosition.next($scope.rows, $scope.columns)
           } else {
+            // We end the process here.
             console.log('CALLING STOP')
             self.stop()
             resetAntennaPosition(1000)
@@ -641,11 +675,19 @@ angular.module('MainApp')
           }, (newValue, oldValue) => {
             console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
             if (newValue) {
+              // As we know that we are in a new position we check the bitrate.
+              // checkBitrate()
+              NetInfo.checkRxBirate($scope.selectedDevice)
               // timeout, delay, readings, filePath, callback)
-              wifiReadings(1500,
+              wifiReadingsV2(1500,
                 $scope.configuration.readingDelay,
                 $scope.configuration.numberOfReadings,
-                afterWifiReadings)
+                afterWifiReadings
+              )
+              // wifiReadings(1500,
+              //   $scope.configuration.readingDelay,
+              //   $scope.configuration.numberOfReadings,
+              //   afterWifiReadings)
             }
           },
           false,

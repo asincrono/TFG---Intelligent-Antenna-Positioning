@@ -35,6 +35,50 @@ angular.module('MainApp')
       }
     }
 
+    class RxStamp {
+      constructor(bytes, timestamp) {
+        this.bytes = bytes
+        this.timestamp = timestamp
+      }
+
+      getBitrate(rxStamp) {
+        let byteDiff = Math.abs(this.bytes - rxStamp.bytes)
+        // Time should be in seconds.
+        let timeDiff = Math.abs(this.timestamp - rxStamp.timestamp) / 1000
+        return Math.trunc(byteDiff / timeDiff)
+      }
+
+      update(bytes, timestamp) {
+        this.bytes = bytes
+        this.timestamp = timestamp
+      }
+    }
+
+    let rxStamp = null
+
+    // Since the last invocation
+    function checkRxBitrate(device, callback) {
+      getRx(device, (err, bytes, timestamp) => {
+        if (err) {
+          callback(err)
+        } else {
+          let newRxStamp = new RxStamp(bytes, timestamp)
+
+          // First invocation will return always null.
+          let bitrate = null
+          if (rxStamp) {
+            let bitrate = rxStamp.getBitrate(newRxStamp)
+            rxStamp.update()
+          } else {
+            rxStamp.update(bytes, timestamp)
+          }
+          if (callback) {
+            callback(null, bitrate)
+          }
+        }
+      })
+    }
+
     function parseLinux(device, data) {
       let lines = data.split('\n')
 
@@ -137,7 +181,7 @@ angular.module('MainApp')
     }
 
     /*
-    Callback will recive err, bytes readed byt the device and the timestap for that
+    Callback will recive err, bytes readed by the device and the timestap for that
     read.
     */
     function getRx(device, callback) {
@@ -194,6 +238,7 @@ angular.module('MainApp')
       listIfaces: listIfaces,
       NetStats: NetStats,
       getNetStats: getNetStats,
+      checkRxBitrate: checkRxBirate,
       getRx: getRx,
       getTx: getTx,
       getRxTxStats: getRxTxStats
