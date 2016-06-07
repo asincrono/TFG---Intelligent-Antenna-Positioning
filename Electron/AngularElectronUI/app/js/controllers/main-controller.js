@@ -140,7 +140,7 @@ angular.module('MainApp')
         let executor = new utils.Executor(cmd, args, (err, stdout, stderr) => {
           if (err) {
             console.log(err)
-            if (stderror) {
+            if (stderr) {
               console.log('stderror:', stderror)
             }
             tryCount += 1
@@ -425,7 +425,7 @@ angular.module('MainApp')
                 netStats
               )
               if (callback) {
-                $scope.$apply(callback)                
+                $scope.$apply(callback)
               }
             })
         }
@@ -682,7 +682,7 @@ angular.module('MainApp')
               resetAntennaPosition(1000)
             }
           },
-          true,
+          false,
           false
         )
 
@@ -745,7 +745,9 @@ angular.module('MainApp')
           case 'manual':
             console.log('starting in manual...')
             let [x, y] = parsePosition($scope.manualPosition)
+            console.log('currentPosition before: ', $scope.currentPosition.toString())
             $scope.currentPosition = new utils.Position(x, y)
+            console.log('currentPosition after: ', $scope.currentPosition.toString())
             break
         }
       }
