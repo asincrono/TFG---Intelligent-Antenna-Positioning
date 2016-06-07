@@ -140,7 +140,9 @@ angular.module('MainApp')
         let executor = new utils.Executor(cmd, args, (err, stdout, stderr) => {
           if (err) {
             console.log(err)
-            console.log('stderror:', stderror)
+            if (stderror) {
+              console.log('stderror:', stderror)
+            }
             tryCount += 1
 
             if (maxTries && tryCount < maxTries) {
