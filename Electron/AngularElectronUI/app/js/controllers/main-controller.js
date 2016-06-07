@@ -650,53 +650,6 @@ angular.module('MainApp')
         console.log('connected:', $scope.connected)
         console.log('mode:', $scope.configuration.mode)
 
-        /* We restart the warcher in case needed. Watcher already registered
-        won't be registered again. */
-        WatcherTracker.startWatchers()
-
-        let afterWifiReadings = function() {
-          console.log('(afterReadings)')
-          console.log('configuration mode:', $scope.configuration.mode)
-          if ($scope.configuration.mode === 'auto') {
-            // If auto mode we proceed to the next position.
-            $scope.currentPosition = $scope.currentPosition.next($scope.rows, $scope.columns)
-            console.log('new current position: ', $scope.currentPosition)
-          } else {
-            // We end the process here.
-            console.log('CALLING STOP')
-            self.stop()
-            resetAntennaPosition(1000)
-          }
-        }
-
-        // Watch changes in antennaPosition -> trigger wifi readings.
-        /* Once Arduino tells us there is a new position ( -> change in
-        antennaPosition) we do our readings*/
-        WatcherTracker.registerWatcher('antennaPosition', $scope,
-          (scope) => {
-            return scope.antennaPosition
-          }, (newValue, oldValue) => {
-            console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
-            if (newValue) {
-              // As we know that we are in a new position we check the bitrate.
-              // checkBitrate()
-              NetInfo.checkRxBitrate($scope.selectedDevice)
-                // timeout, delay, readings, filePath, callback)
-              wifiReadingsV2(1500,
-                  $scope.configuration.readingDelay,
-                  $scope.configuration.numberOfReadings,
-                  afterWifiReadings
-                )
-                // wifiReadings(1500,
-                //   $scope.configuration.readingDelay,
-                //   $scope.configuration.numberOfReadings,
-                //   afterWifiReadings)
-            }
-          },
-          false,
-          false
-        )
-
         WatcherTracker.registerWatcher('currentPosition', $scope,
           (scope) => {
             return scope.currentPosition
@@ -731,13 +684,60 @@ angular.module('MainApp')
           false
         )
 
+        // Watch changes in antennaPosition -> trigger wifi readings.
+        /* Once Arduino tells us there is a new position ( -> change in
+        antennaPosition) we do our readings*/
+        let afterWifiReadings = function() {
+          console.log('(afterReadings)')
+          console.log('configuration mode:', $scope.configuration.mode)
+          if ($scope.configuration.mode === 'auto') {
+            // If auto mode we proceed to the next position.
+            $scope.currentPosition.next($scope.rows, $scope.columns)
+            console.log('new current position: ', $scope.currentPosition)
+          } else {
+            // We end the process here.
+            console.log('CALLING STOP')
+            self.stop()
+            resetAntennaPosition(1000)
+          }
+        }
+        
+        WatcherTracker.registerWatcher('antennaPosition', $scope,
+          (scope) => {
+            return scope.antennaPosition
+          }, (newValue, oldValue) => {
+            console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
+            if (newValue) {
+              // As we know that we are in a new position we check the bitrate.
+              // checkBitrate()
+              NetInfo.checkRxBitrate($scope.selectedDevice)
+                // timeout, delay, readings, filePath, callback
+              wifiReadingsV2(1500,
+                  $scope.configuration.readingDelay,
+                  $scope.configuration.numberOfReadings,
+                  afterWifiReadings
+                )
+                // wifiReadings(1500,
+                //   $scope.configuration.readingDelay,
+                //   $scope.configuration.numberOfReadings,
+                //   afterWifiReadings)
+            }
+          },
+          false,
+          false
+        )
+
+        /* We restart the warcher in case needed. Watcher already registered
+        won't be registered again. */
+        WatcherTracker.startWatchers()
+
         switch ($scope.configuration.mode) {
           case 'auto':
             console.log('Starting in auto mode...')
               // Start of the sequence.
               // $scope.currentPosition = new utils.Position(0, 0)
             $scope.currentPosition = new utils.Position(0, 0)
-            console.log('just canged currentPosition:', $scope.currentPosition)
+            console.log('just changed currentPosition:', $scope.currentPosition)
             break
           case 'manual':
             console.log('starting in manual...')

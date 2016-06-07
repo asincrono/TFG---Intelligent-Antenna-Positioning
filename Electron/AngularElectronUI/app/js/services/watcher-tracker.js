@@ -11,6 +11,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
     register() {
       if (!this.registered) {
+        console.log(this.watchName, 'registered.')
         this.watcherDeregFunc = this.watcherFunc()
         this.registered = true
       }
