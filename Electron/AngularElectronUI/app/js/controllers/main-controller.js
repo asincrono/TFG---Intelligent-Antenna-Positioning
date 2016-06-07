@@ -682,7 +682,7 @@ angular.module('MainApp')
               resetAntennaPosition(1000)
             }
           },
-          false,
+          true,
           false
         )
 
@@ -746,6 +746,7 @@ angular.module('MainApp')
             console.log('starting in manual...')
             let [x, y] = parsePosition($scope.manualPosition)
             console.log('currentPosition before: ', $scope.currentPosition)
+            // $scope.currentPosition = new utils.Position(x, y)
             $scope.currentPosition = new utils.Position(x, y)
             console.log('currentPosition after: ', $scope.currentPosition)
             break

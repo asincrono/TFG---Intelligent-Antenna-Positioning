@@ -66,7 +66,8 @@ class Position {
         }
       }
     }
-    
+    this.x = row
+    this.y = col
     return new Position(row, col)
   }
 
