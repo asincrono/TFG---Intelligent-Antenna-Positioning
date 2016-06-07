@@ -39,6 +39,12 @@ class Position {
       ...
       3,3 -> undefined
       */
+  /**
+   * [next description]
+   * @param  {[type]}   rows [description]
+   * @param  {[type]}   cols [description]
+   * @return {Function}      [description]
+   */
   next(rows, cols) {
     if (rows === undefined || cols === undefined) {
       return false
@@ -68,6 +74,7 @@ class Position {
     }
     this.x = row
     this.y = col
+
     return new Position(row, col)
   }
 

@@ -471,7 +471,9 @@ angular.module('MainApp')
       //   }, timeout)
       // }
 
+
       function init() {
+
         // Configuration
         $scope.configuration = {
           mode: 'auto',
@@ -653,10 +655,9 @@ angular.module('MainApp')
         console.log('mode:', $scope.configuration.mode)
 
         WatcherTracker.registerWatcher('currentPosition', $scope,
-          (scope) => {
-            return scope.currentPosition
-          }, (newValue, oldValue) => {
-            console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
+          scope => scope.currentPosition,
+          (newValue, oldValue) => {
+            console.log('(mainCtrl) currentPosition changed: (old)', oldValue.toString(), '(new)', newValue.toString())
             if (newValue) {
               if (newValue.x === 0 && newValue.y === 0) {
                 resetAntennaPosition()
@@ -682,7 +683,7 @@ angular.module('MainApp')
               resetAntennaPosition(1000)
             }
           },
-          false,
+          true,
           false
         )
 
@@ -695,7 +696,7 @@ angular.module('MainApp')
           if ($scope.configuration.mode === 'auto') {
             // If auto mode we proceed to the next position.
 
-            $scope.currentPosition = $scope.currentPosition.next($scope.rows, $scope.columns)
+            $scope.currentPosition.next($scope.rows, $scope.columns)
             console.log('new current position: ', $scope.currentPosition)
           } else {
             // We end the process here.
@@ -737,18 +738,20 @@ angular.module('MainApp')
         switch ($scope.configuration.mode) {
           case 'auto':
             console.log('Starting in auto mode...')
-              // Start of the sequence.
-              // $scope.currentPosition = new utils.Position(0, 0)
-            $scope.currentPosition = new utils.Position(0, 0)
+            // Start of the sequence.
+            // $scope.currentPosition = new utils.Position(0, 0)
+            // I need to use this timeout to force the watcher to see this change
+
+            $timeout(() => {
+              $scope.currentPosition.set(0, 0)
+            }, 1)
             console.log('just changed currentPosition:', $scope.currentPosition)
             break
           case 'manual':
             console.log('starting in manual...')
             let [x, y] = parsePosition($scope.manualPosition)
-            console.log('currentPosition before: ', $scope.currentPosition)
-            $scope.currentPosition = new utils.Position(x, y)
-            // $scope.currentPosition.set(x, y)
-            console.log('currentPosition after: ', $scope.currentPosition)
+            $scope.currentPosition.set(x, y)
+              // $scope.currentPosition.set(x, y)
             break
         }
       }
