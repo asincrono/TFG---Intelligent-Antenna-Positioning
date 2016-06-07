@@ -654,6 +654,9 @@ angular.module('MainApp')
         console.log('connected:', $scope.connected)
         console.log('mode:', $scope.configuration.mode)
 
+        console.log('setting initial position')
+        $scope.currentPosition.set(0, 0)
+
         WatcherTracker.registerWatcher('currentPosition', $scope,
           scope => scope.currentPosition,
           (newValue, oldValue) => {
