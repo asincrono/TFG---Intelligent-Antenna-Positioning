@@ -409,22 +409,23 @@ angular.module('MainApp')
 
         let afterSuccess = function() {
           let netStats = calcMeanNetStats(netStatsList)
-          NetInfo.checkRxBitrate((err, bitrate) => {
-            let bps = bitrate * 8
+          NetInfo.checkRxBitrate($scope.selectedDevice,
+            (err, bitrate) => {
+              let bps = bitrate * 8
 
-            netStats.bitrate.rx = conversion.bps2Mbps(bps)
-            // We update netStats and save antenaPosition to file.
-            // (antennaPosition save herself on change through watcher)
-            $scope.netStats = netStats
-            $scope.positionWithStats = new utils.AntennaPosition(
-              $scope.antennaPosition.x,
-              $scope.antennaPosition.y,
-              netStats
-            )
-            if (callback) {
-              callback()
-            }
-          })
+              netStats.bitrate.rx = conversion.bps2Mbps(bps)
+                // We update netStats and save antenaPosition to file.
+                // (antennaPosition save herself on change through watcher)
+              $scope.netStats = netStats
+              $scope.positionWithStats = new utils.AntennaPosition(
+                $scope.antennaPosition.x,
+                $scope.antennaPosition.y,
+                netStats
+              )
+              if (callback) {
+                callback()
+              }
+            })
         }
 
         $timeout(() => {
@@ -643,7 +644,7 @@ angular.module('MainApp')
 
       self.start = function start() {
         $scope.started = true
-        // checkBitrate()
+          // checkBitrate()
 
         console.log('starting...')
         console.log('connected:', $scope.connected)
@@ -678,16 +679,16 @@ angular.module('MainApp')
               // As we know that we are in a new position we check the bitrate.
               // checkBitrate()
               NetInfo.checkRxBitrate($scope.selectedDevice)
-              // timeout, delay, readings, filePath, callback)
+                // timeout, delay, readings, filePath, callback)
               wifiReadingsV2(1500,
-                $scope.configuration.readingDelay,
-                $scope.configuration.numberOfReadings,
-                afterWifiReadings
-              )
-              // wifiReadings(1500,
-              //   $scope.configuration.readingDelay,
-              //   $scope.configuration.numberOfReadings,
-              //   afterWifiReadings)
+                  $scope.configuration.readingDelay,
+                  $scope.configuration.numberOfReadings,
+                  afterWifiReadings
+                )
+                // wifiReadings(1500,
+                //   $scope.configuration.readingDelay,
+                //   $scope.configuration.numberOfReadings,
+                //   afterWifiReadings)
             }
           },
           false,
@@ -709,7 +710,7 @@ angular.module('MainApp')
                 if (newValue.x === oldValue.x) {
                   console.log('moving Y')
                   moveAntennaY(newValue.y, $scope.rows, 500)
-                } else if (newValue.y === oldValue.y){
+                } else if (newValue.y === oldValue.y) {
                   console.log('moving X')
                   moveAntennaX(newValue.x, $scope.columns, 500)
                 } else {
