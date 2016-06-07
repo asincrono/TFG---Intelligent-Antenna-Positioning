@@ -473,7 +473,8 @@ angular.module('MainApp')
 
 
       function init() {
-
+        // To test at start()
+        $scope.p1 = new utils.Position(0, 0)
         // Configuration
         $scope.configuration = {
           mode: 'auto',
@@ -647,6 +648,17 @@ angular.module('MainApp')
       // }
 
       self.start = function start() {
+        // Testing watch again
+        $scope.$watch(
+          scope => scope.p1,
+          (oldValue, newValue) => {
+            console.log(`p1 new ${newValue}, old ${oldValue}.`)
+          }
+        )
+        $scope.p1.set(0, 0)
+        $timeout(() => {$scope.p1.set(1, 1)}, 1)
+
+
         $scope.started = true
           // checkBitrate()
 
