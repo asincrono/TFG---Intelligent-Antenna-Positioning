@@ -529,7 +529,7 @@ angular.module('MainApp')
             $scope.$apply(() => {
               $scope.antennaPosition = parseArduinoMsg(data, $scope.rows, $scope.columns)
                 // When we reach a new position we make a bitrate checkpoit
-              checkBitrate()
+              NetInfo.checkRxBitrate($scope.selectedDevice)
               console.log('Antenna position:', $scope.antennaPosition)
             })
           }
@@ -677,7 +677,7 @@ angular.module('MainApp')
             if (newValue) {
               // As we know that we are in a new position we check the bitrate.
               // checkBitrate()
-              NetInfo.checkRxBirate($scope.selectedDevice)
+              NetInfo.checkRxBitrate($scope.selectedDevice)
               // timeout, delay, readings, filePath, callback)
               wifiReadingsV2(1500,
                 $scope.configuration.readingDelay,
