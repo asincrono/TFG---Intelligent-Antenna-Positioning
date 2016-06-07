@@ -60,7 +60,10 @@ angular.module('MainApp')
     function checkRxBitrate(device, callback) {
       getRx(device, (err, bytes, timestamp) => {
         if (err) {
-          callback(err)
+          console.log(err)
+          if (callback) {
+            callback(err)
+          }
         } else {
           let newRxStamp = new RxStamp(bytes, timestamp)
 
