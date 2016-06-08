@@ -603,10 +603,14 @@ angular.module('MainApp')
             $timeout(() => {
               console.log('Some time after?')
               ArduinoComm.getAddr((err, addr) => {
-                console.log('Arduino serial addr:', addr)
-                connect(addr, afterDataCallback, afterConnectCallback)
+                if (err) {
+
+                } else {
+                  console.log('Arduino serial addr:', addr)
+                  connect(addr, afterDataCallback, afterConnectCallback)
+                }
               })
-            }, 2500)
+            }, 3000)
           }
         })
 
@@ -692,7 +696,7 @@ angular.module('MainApp')
 
       self.start = function start() {
         $scope.started = true
-        // Just to try to get an default device.
+          // Just to try to get an default device.
         selectedDevice((device) => {
           $scope.selectedDevice = device
         })
@@ -731,8 +735,8 @@ angular.module('MainApp')
               console.log('The end.')
               self.stop()
               resetAntennaPosition(1000)
-              // lets go to the best position.
-              // TODO: Implement goint to the best position.
+                // lets go to the best position.
+                // TODO: Implement goint to the best position.
 
             }
           },
@@ -751,8 +755,8 @@ angular.module('MainApp')
 
             $scope.currentPosition.next($scope.rows, $scope.columns)
             console.log('new current position: ', $scope.currentPosition)
-            // The end will be when currentPosition.next(returns false) and
-            // positions don't change anymore.
+              // The end will be when currentPosition.next(returns false) and
+              // positions don't change anymore.
           } else {
             // We end the process here.
             console.log('The end.(manual mode)')

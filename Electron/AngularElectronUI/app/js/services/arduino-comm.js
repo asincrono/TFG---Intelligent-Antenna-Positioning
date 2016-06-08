@@ -6,7 +6,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
   let dataCallback
 
   return {
-    list: function (callback)  {
+    list: function(callback)  {
       SerialPort.list((err, ports) => {
         if (err) {
           console.log(err)
@@ -15,7 +15,25 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
         }
       })
     },
-    getAddr: function (callback) {
+    getAddr: function(callback) {
+      SerialPort.list((err, ports) => {
+        if (err) {
+          callback(err)
+        } else {
+          let arduinoAddr = null
+          let limit = ports.length
+          
+          for (let i = 0; i < limit; i += 1) {
+            if (/Arduino/.test(ports[i])) {
+              arduinoAddr = ports[i].comName
+              break
+            }
+          }
+          callback(null, arduinoAddr)
+        }
+      })
+    },
+    getAddr_old: function(callback) {
       SerialPort.list((err, ports) => {
         if (err) {
           throw err
@@ -33,7 +51,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       })
     },
 
-    createPort: function (portAddr, baudRate) {
+    createPort: function(portAddr, baudRate) {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
@@ -42,12 +60,12 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
         false
       )
     },
-    openPort: function (port, callback) {
+    openPort: function(port, callback) {
       if (port !== undefined && !port.isOpen()) {
         port.open(callback)
       }
     },
-    createAndOpenPort: function (portAddr, baudRate) {
+    createAndOpenPort: function(portAddr, baudRate) {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
@@ -59,7 +77,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       )
       return port
     },
-    createOpenAndSetupPort: function (portAddr, baudRate, openCallback, dataCallback) {
+    createOpenAndSetupPort: function(portAddr, baudRate, openCallback, dataCallback) {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
@@ -76,7 +94,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
 
       return port
     },
-    createOpenSetupAndWriteMsg: function (portAddr, baudRate, msg, callback) {
+    createOpenSetupAndWriteMsg: function(portAddr, baudRate, msg, callback) {
       let port = new SerialPort(
         portAddr, {
           baudRate: baudRate,
@@ -94,12 +112,12 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
 
       return port
     },
-    closePort: function (port) {
+    closePort: function(port) {
       if (port !== undefined && port.isOpen()) {
         port.close()
       }
     },
-    writeMsg: function (port, msg, callback) {
+    writeMsg: function(port, msg, callback) {
       if (port !== undefined) {
         port.write(msg, callback)
         port.drain()
@@ -107,7 +125,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
         console.log('Failed to write: port undefined')
       }
     },
-    setDataCallback: function (port, callback) {
+    setDataCallback: function(port, callback) {
       port.on('data', callback)
     }
   }
