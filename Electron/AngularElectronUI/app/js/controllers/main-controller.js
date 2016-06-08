@@ -618,10 +618,6 @@ angular.module('MainApp')
 
       self.start = function start() {
         $scope.started = true
-          // Just to try to get an default device.
-        selectedDevice((device) => {
-          $scope.selectedDevice = device
-        })
 
         console.log('starting...')
         console.log('connected:', $scope.connected)
