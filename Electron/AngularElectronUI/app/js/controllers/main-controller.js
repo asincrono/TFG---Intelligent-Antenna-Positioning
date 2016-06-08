@@ -93,9 +93,9 @@ angular.module('MainApp')
           submenu: []
         }
 
-        // We'll filter devices starting by 'lo' and 'en'.
+        // We'll filter out devices starting by 'lo' and 'en' (only for linux).
         let devices = NetInfo.listIfaces().filter((iface) => {
-          return (iface.search(/^lo/) < 0 && iface.search(/^en/) < 0)
+          return !(iface.startsWith('lo') || iface.startsWith('en'))
         })
         let selected = false
         devices.forEach((device) => {
@@ -126,17 +126,15 @@ angular.module('MainApp')
       }
 
       /**
-       * Calls callback with a random wireless iface name.
-       * @param  {Function} callback [description]
-       * @return {[type]}            [description]
+       * Returns a valid wireless interface name or undefined if there is no
+       * valid interface.
+       * @return {String} A valid wireless interface name or undefined if ins't.
        */
-      function defaultIfacee(callback) {
-        NetInfo.listIfaces((ifList) => {
-          let fIfList = ifList.filter((iface) => {
-            return !(iface.search(/^en/) || iface.search(/^lo/))
-          })
-          callback(fIfList.pop())
+      function getDefaultIface() {
+        let ifList = NetInfo.listIfaces().filter((iface) => {
+          return !(iface.search(/^en/) || iface.search(/^lo/))
         })
+        return ifList.pop()
       }
 
       /**Runs a command in an Executor object. If an error occours after delay
@@ -479,8 +477,8 @@ angular.module('MainApp')
       }
 
       function init() {
-        // To test at start()
-        $scope.p1 = new utils.Position(0, 0)
+
+
           // Configuration
         $scope.configuration = {
           mode: 'auto',
