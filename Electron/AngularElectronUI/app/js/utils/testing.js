@@ -61,3 +61,27 @@ serialport.list((err, portList) => {
     }
   }
 })
+
+let myFunc = function () {
+  let love = false
+
+  function setLove() {
+    love = true
+  }
+  function getLove() {
+    return love
+  }
+  function showLove() {
+    console.log('love:', love)
+  }
+  return {
+    setLove: setLove,
+    getLove: getLove,
+    showLove: showLove
+  }
+}
+
+let mf = myFunc()
+mf.showLove()
+mf.setLove()
+mf.showLove()

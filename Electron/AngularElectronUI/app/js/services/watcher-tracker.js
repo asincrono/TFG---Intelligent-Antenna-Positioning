@@ -1,8 +1,8 @@
-angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFactory () {
+angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFactory() {
   'use strict'
   class Watch {
     constructor(name, watcherFunc, persistent) {
-      this.watchName = name
+      this.watcherName = name
       this.watcherFunc = watcherFunc
       this.watcherDeregFunc = null
       this.persistent = persistent
@@ -58,6 +58,52 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
       return watch.persistent
     })
   }
+
+  function remove(name) {
+    let limit = watchList.length
+
+    for (let i = 0; i < length; i += 1) {
+      if (watchList[i].watcherName === name) {
+        let watcher = watchList.splice(i, 1)
+        wather.deregister()
+        return true
+      }
+    }
+    return false
+  }
+
+  function removeAll(name) {
+    let limit = watchList.length
+    let count = 0
+    let idxList = []
+    let regExp = new RegExp(`^${name}`)
+
+    // We deregister all the watchers which wathcerName starts by name
+    // and we store they idx
+    watchList.forEach((watch, idx, arr) => {
+      if (regExp.test(watch.watherName)) {
+        idxList.push(idx)
+        watch.deregister()
+      }
+    })
+
+    // We remove (asign null) the postions selected before.
+    idxList.forEach((idx) => {
+      watchList[idx] = null
+    })
+
+    // We prune the array of watchers from null values.
+    let idx = 0
+    while (idx < limit) {
+      if (watchList[idx]) {
+        idx += 1
+      } else {
+        watchList.splice(idx, 1)
+        limit -= 1
+      }
+    }
+  }
+
 
   function count() {
     return watchList.length

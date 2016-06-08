@@ -125,6 +125,20 @@ angular.module('MainApp')
         Menu.setApplicationMenu(appMenu)
       }
 
+      /**
+       * Calls callback with a random wireless iface name.
+       * @param  {Function} callback [description]
+       * @return {[type]}            [description]
+       */
+      function defaultIfacee(callback) {
+        NetInfo.listIfaces((ifList) => {
+          let fIfList = ifList.filter((iface) => {
+            return !(iface.search(/^en/) || iface.search(/^lo/))
+          })
+          callback(fIfList.pop())
+        })
+      }
+
       /**Runs a command in an Executor object. If an error occours after delay
        * it will try to run the command again up to a maximum of maxTries.
        *
@@ -141,7 +155,7 @@ angular.module('MainApp')
           if (err) {
             console.log(err)
             if (stderr) {
-              console.log('stderror:', stderror)
+              console.log('stderr:', stderr)
             }
             tryCount += 1
 
@@ -424,6 +438,7 @@ angular.module('MainApp')
                 $scope.antennaPosition.y,
                 netStats
               )
+              $scope.positionList.push($scope.positionWithStats)
               if (callback) {
                 $scope.$apply(callback)
               }
@@ -471,6 +486,33 @@ angular.module('MainApp')
       //   }, timeout)
       // }
 
+      function bestPositionLevel(positionList) {
+        let maxPos
+        if (positionList && positionList.length > 0) {
+          maxPos = positionList[0]
+
+          positionList.forEach((position) => {
+            if (position.stats.level > maxPos.stats.level) {
+              maxPos = position
+            }
+          })
+        }
+        return maxPos
+      }
+
+      function bestPositionBitrate(positionList) {
+        let maxPos
+        if (positionList && positionList.length > 0) {
+          maxPos = positionList[0]
+
+          positionList.forEach((position, idx, arr) => {
+            if (position.stats.bitrate.rx > maxPos.stats.bitrate.rx) {
+              maxPos = position
+            }
+          })
+        }
+        return maxPos
+      }
 
       function init() {
         // To test at start()
@@ -482,6 +524,7 @@ angular.module('MainApp')
           readingDelay: 1000
         }
 
+
         $scope.connected = false
         $scope.started = false
 
@@ -492,8 +535,8 @@ angular.module('MainApp')
 
         $scope.maxPositions = $scope.rows * $scope.columns
 
-
         $scope.positionWithStats = null
+        $scope.positionList = []
         $scope.currentPosition = new utils.Position(0, 0)
         $scope.antennaPosition = null
 
@@ -648,22 +691,11 @@ angular.module('MainApp')
       // }
 
       self.start = function start() {
-        // Testing watch again
-        $scope.$watch(
-          scope => scope.p1,
-          (oldValue, newValue) => {
-            console.log(`p1 new ${newValue}, old ${oldValue}.`)
-          },
-          true
-        )
-        $scope.p1.set(0, 0)
-        $timeout(() => {
-          $scope.p1.set(1, 1)
-        }, 1)
-
-
         $scope.started = true
-          // checkBitrate()
+        // Just to try to get an default device.
+        selectedDevice((device) => {
+          $scope.selectedDevice = device
+        })
 
         console.log('starting...')
         console.log('connected:', $scope.connected)
@@ -699,6 +731,9 @@ angular.module('MainApp')
               console.log('The end.')
               self.stop()
               resetAntennaPosition(1000)
+              // lets go to the best position.
+              // TODO: Implement goint to the best position.
+
             }
           },
           true,
@@ -716,9 +751,11 @@ angular.module('MainApp')
 
             $scope.currentPosition.next($scope.rows, $scope.columns)
             console.log('new current position: ', $scope.currentPosition)
+            // The end will be when currentPosition.next(returns false) and
+            // positions don't change anymore.
           } else {
             // We end the process here.
-            console.log('CALLING STOP')
+            console.log('The end.(manual mode)')
             self.stop()
             resetAntennaPosition(1000)
           }

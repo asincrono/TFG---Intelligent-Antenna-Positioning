@@ -47,7 +47,7 @@ class Position {
    */
   next(rows, cols) {
     if (rows === undefined || cols === undefined) {
-      return false
+      throw new Error('"rows" and "cols" must be numbers')
     }
 
     let row = this.x
@@ -59,7 +59,7 @@ class Position {
         col -= 1
         row += 1
         if (row === rows) {
-          return undefined
+          return false
         }
       }
     } else {
@@ -68,7 +68,7 @@ class Position {
         col += 1
         row += 1
         if (row === rows) {
-          return undefined
+          return false
         }
       }
     }
@@ -231,6 +231,57 @@ class Executor {
     this.child.kill('SIGKILL')
   }
 }
+
+function cmdOnExecutorRunner(cmd, args, maxTries, delay) {
+  let tryCount = 0
+  let end = false
+    // Initiate the curl command data transmission
+  let executor = new Executor(cmd, args, (err, stdout, stderr) => {
+    if (err) {
+      if (stderr) {
+        console.log('stderror:', stderr)
+      }
+      tryCount += 1
+
+      if (maxTries && !end && tryCount < maxTries) {
+        // Try to determine if the error was cause a kill or quit signal
+        // and prevent to retry
+        console.log('(mainCtrl) runCmdOnExecutor retry:', tryCount)
+        if (delay) {
+          setTimeout(function () {
+            executor.run()
+          }, delay)
+        } else {
+          executor.run()
+        }
+      } else {
+        throw err
+      }
+    } else {
+      if (stdout) {
+        console.log('curl stdout:', stdout)
+      }
+      if (stderr) {
+        console.log('curl stderr:', stderr)
+      }
+    }
+  })
+
+  function run() {
+    executor.run()
+  }
+
+  function stop() {
+    end = true
+    executor.stop()
+  }
+
+  return {
+    run: run,
+    stop: stop
+  }
+}
+
 
 exports.leftPad = leftPad
 exports.rightPad = rightPad
