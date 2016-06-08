@@ -18,14 +18,17 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
     getAddr: function(callback) {
       SerialPort.list((err, ports) => {
         if (err) {
+          console.log('getAdd -> error:', err)
           callback(err)
         } else {
           let arduinoAddr = null
           let limit = ports.length
-          
+
           for (let i = 0; i < limit; i += 1) {
+            console.log(`getAddr -> port ${i}: ${ports[i]}`)
             if (/Arduino/.test(ports[i])) {
               arduinoAddr = ports[i].comName
+              console.log('getAddr -> match:', arduinoAddr)
               break
             }
           }
