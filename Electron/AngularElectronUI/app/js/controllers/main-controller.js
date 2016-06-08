@@ -590,7 +590,8 @@ angular.module('MainApp')
 
         //       Try to connect
         //       Try to get Arduino addr
-        ArduinoComm.getAddr((addr) => {
+        ArduinoComm.getAddr((err, addr) => {
+          if (err) throw err
           if (addr) {
             console.log('Arduino serial addr:', addr)
             connect(addr, afterDataCallback, afterConnectCallback)
