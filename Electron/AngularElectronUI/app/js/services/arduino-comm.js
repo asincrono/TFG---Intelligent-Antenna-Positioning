@@ -3,6 +3,8 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
   // Load serial module.
   const SerialPort = require('serialport')
 
+  let dataCallback
+
   return {
     list: function (callback)  {
       SerialPort.list((err, ports) => {
@@ -15,9 +17,14 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
     },
     getAddr: function (callback) {
       SerialPort.list((err, ports) => {
+        if (err) {
+          throw err
+        }
+
         let arduinoAddr
         let arduinoPorts = ports.filter((port) => {
-          return port.manufacturer && port.manufacturer.includes('Arduino')
+          console.log(port)
+          return port.manufacturer && /Arduino/.test(port.manufacturer)
         })
         if (arduinoPorts.length > 0) {
           arduinoAddr = arduinoPorts[0].comName
@@ -25,7 +32,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
         callback(arduinoAddr)
       })
     },
-  
+
     createPort: function (portAddr, baudRate) {
       let port = new SerialPort(
         portAddr, {
@@ -101,7 +108,7 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
       }
     },
     setDataCallback: function (port, callback) {
-
+      port.on('data', callback)
     }
   }
 })

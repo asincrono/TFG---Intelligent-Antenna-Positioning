@@ -11,7 +11,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
     register() {
       if (!this.registered) {
-        console.log(this.watchName, 'registered.')
+        console.log(this.watcherName, 'registered.')
         this.watcherDeregFunc = this.watcherFunc()
         this.registered = true
       }
@@ -19,7 +19,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
     deregister() {
       if (this.registered) {
-        console.log(this.watchName, 'deregistered.')
+        console.log(this.watcherName, 'deregistered.')
         this.watcherDeregFunc()
         this.registered = false
       }
@@ -72,7 +72,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
     return false
   }
 
-  function removeAll(name) {
+  function removeByPrefix(name) {
     let limit = watchList.length
     let count = 0
     let idxList = []
