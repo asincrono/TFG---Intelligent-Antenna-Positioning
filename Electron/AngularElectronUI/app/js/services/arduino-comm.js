@@ -18,43 +18,21 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
     getAddr: function(callback) {
       SerialPort.list((err, ports) => {
         if (err) {
-          console.log('getAdd -> error:', err)
           callback(err)
         } else {
           let arduinoAddr = null
           let limit = ports.length
 
           for (let i = 0; i < limit; i += 1) {
-            console.log(`getAddr -> port ${i}:`, ports[i])
             if (/Arduino/.test(ports[i].manufacturer)) {
               arduinoAddr = ports[i].comName
-              console.log('getAddr -> match:', arduinoAddr)
               break
             }
           }
-          console.log('getAdd -> just before callback:', arduinoAddr)
           callback(null, arduinoAddr)
         }
       })
     },
-    getAddr_old: function(callback) {
-      SerialPort.list((err, ports) => {
-        if (err) {
-          throw err
-        }
-
-        let arduinoAddr
-        let arduinoPorts = ports.filter((port) => {
-          console.log(port)
-          return port.manufacturer && /Arduino/.test(port.manufacturer)
-        })
-        if (arduinoPorts.length > 0) {
-          arduinoAddr = arduinoPorts[0].comName
-        }
-        callback(arduinoAddr)
-      })
-    },
-
     createPort: function(portAddr, baudRate) {
       let port = new SerialPort(
         portAddr, {
