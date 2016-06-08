@@ -610,7 +610,7 @@ angular.module('MainApp')
                   connect(addr, afterDataCallback, afterConnectCallback)
                 }
               })
-            }, 3000)
+            }, 5000)
           }
         })
 

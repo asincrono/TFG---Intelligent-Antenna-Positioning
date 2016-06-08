@@ -25,13 +25,14 @@ angular.module('MainApp').factory('ArduinoComm', function ArduinoCommFactory() {
           let limit = ports.length
 
           for (let i = 0; i < limit; i += 1) {
-            console.log(`getAddr -> port ${i}: ${ports[i]}`)
-            if (/Arduino/.test(ports[i])) {
+            console.log(`getAddr -> port ${i}:`, ports[i])
+            if (/Arduino/.test(ports[i].manufacturer)) {
               arduinoAddr = ports[i].comName
               console.log('getAddr -> match:', arduinoAddr)
               break
             }
           }
+          console.log('getAdd -> just before callback:', arduinoAddr)
           callback(null, arduinoAddr)
         }
       })
