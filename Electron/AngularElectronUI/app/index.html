@@ -19,7 +19,7 @@
   <script src="bower_components/angular-messages/angular-messages.js"></script>
   <!--  Angular Material JS-->
   <script src="bower_components/angular-material/angular-material.js"></script>
-  <!--  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>-->
+   <!-- <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> -->
   <script type="text/javascript" src="js/vendors/loader.js"></script>
   <!-- ng-electron to reach electron main process from angular code -->
 <!--  <script src="bower_components/ng-electron/ng-electron.js"></script>-->
@@ -31,13 +31,22 @@
       <div layout="column" class="control-div" flex>
         <div layout="row" class="button-div">
           <!--  Start should be enable if !started AND connected-->
-          <md-button class="md-raised md-primary" ng-disabled="started || !connected" ng-click="mainCtrl.start()">Start</md-button>
+          <md-button class="md-raised md-primary" ng-disabled="started || !connected" ng-click="mainCtrl.start()">
+            Start
+          </md-button>
 <!--          <md-button class="md-raised md-primary" ng-click="test()">Start</md-button>-->
-          <md-button class="md-raised md-warn" ng-disabled="!started" ng-click="mainCtrl.stop()">Stop</md-button>
+          <md-button class="md-raised md-warn" ng-disabled="!started" ng-click="mainCtrl.stop()">
+            Stop
+          </md-button>
         </div>
         <form layout="column" name="configForm">
           <md-input-container flex>
-            <md-switch ng-model="configuration.mode" aria-label="Auto switch" ng-true-value="'manual'" ng-false-value="'auto'"> {{ configuration.mode }} mode </md-switch>
+            <md-switch ng-model="configuration.mode" aria-label="Auto switch" ng-true-value="'manual'" ng-false-value="'auto'">
+              {{ configuration.mode }} mode
+              <md-tooltip md-direction="right" md-delay="1000">
+                Activate/deactivate the manual mode
+              </md-tooltip>
+            </md-switch>
           </md-input-container>
           <md-input-container ng-show="configuration.mode === 'manual'" flex>
             <label>Position</label>
@@ -49,6 +58,7 @@
           <md-input-container flex>
             <label>WiFi readings</label>
             <input name="readings" flex="50" type="number" min="1" max="15" ng-model="configuration.numberOfReadings" placeholder="5">
+            <md-tooltip md-delay="1000">Number of readings for each position</md-tooltip>
             <div ng-messages="configForm.readings.$error" ng-show="configForm.readings.$error.min || configForm.readings.$error.max">
               <div ng-message="min">Min number of readings is 1</div>
               <div ng-message="max">Max number of readings is 15</div>
@@ -57,6 +67,7 @@
           <md-input-container flex>
             <label>Reading delay:</label>
             <input name="delay" flex="50" type="number" min="500" max="3000" ng-model="configuration.readingDelay" placeholder="1000">
+            <md-tooltip md-delay="1000">Delay between readings (in milliseconsds)</md-tooltip>
             <div ng-messages="configForm.delay.$error" ng-show="configForm.delay.$error.min || configForm.delay.$error.max">
               <div ng-message="min">Min value for delay is 500ms</div>
               <div ng-message="max">Max value for delay is 3000ms</div>
@@ -72,14 +83,12 @@
           <thead>
             <tr>
               <th>Position</th>
-              <th>Signal</th>
-              <th>Noise</th>
-              <th>Bps</th>
+              <th>Level</th>
+              <th>Mbps</th>
             </tr>
             <tr>
               <td ng-bind="currentPosition.toString()">position</td>
               <td ng-bind="netStats.level">level</td>
-              <td ng-bind="netStats.noise">noise</td>
               <td ng-bind="netStats.bitrate.rx">bitrate</td>
             </tr>
           </thead>
@@ -89,18 +98,18 @@
 
     <md-divider></md-divider>
 
-    <div class="graph-div" id="linechart" ng-controller="GraphController as graphCtrl">
+    <div class="chart-div" id="linechart" ng-controller="ChartController as chartCtrl">
     </div>
   </div>
 </body>
 
-<!-- Google graph -->
+<!-- Google chart -->
 
 <!-- Modules-->
 <script src="js/app.js"></script>
 <!-- Controllers -->
 <script src="js/controllers/main-controller.js"></script>
-<script src="js/controllers/graph-controller.js"></script>
+<script src="js/controllers/chart-controller.js"></script>
 <script src="js/controllers/canvas-controller.js"></script>
 <script src="js/controllers/config-controller.js"></script>
 <!-- Services -->

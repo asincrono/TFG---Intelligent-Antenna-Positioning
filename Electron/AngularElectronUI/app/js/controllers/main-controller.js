@@ -2,6 +2,7 @@ angular.module('MainApp')
   .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', 'WatcherTracker',
     function($scope, $timeout, $interval, NetInfo, ArduinoComm, WatcherTracker) {
       'use strict'
+
       const usbDetect = require('usb-detection')
       const path = require('path')
       const utils = require('./js/utils/utils.js')
@@ -76,7 +77,7 @@ angular.module('MainApp')
 
       const MSG_ARGS_MOTOR_Y = {
         tolerance: 5,
-        baseSpeed: 200,
+        baseSpeed: 250,
         maxSpeed: 250,
         pollDelay: 15,
         maxTries: 50
@@ -84,15 +85,17 @@ angular.module('MainApp')
 
       let self = this
 
+      let curlProcess
+
       function setDeviceSelectionMenu() {
         let selectDevice = {
           label: 'Select device',
           submenu: []
         }
 
-        // We'll filter devices starting by 'lo' and 'en'.
+        // We'll filter out devices starting by 'lo' and 'en' (only for linux).
         let devices = NetInfo.listIfaces().filter((iface) => {
-          return (iface.search(/^lo/) < 0 && iface.search(/^en/) < 0)
+          return !(iface.startsWith('lo') || iface.startsWith('en'))
         })
         let selected = false
         devices.forEach((device) => {
@@ -122,6 +125,75 @@ angular.module('MainApp')
         Menu.setApplicationMenu(appMenu)
       }
 
+      /**
+       * Returns a valid wireless interface name or undefined if there is no
+       * valid interface.
+       * @return {String} A valid wireless interface name or undefined if ins't.
+       */
+      function getDefaultIface() {
+        let ifList = NetInfo.listIfaces().filter((iface) => {
+          return !(iface.search(/^en/) || iface.search(/^lo/))
+        })
+        return ifList.pop()
+      }
+
+      /**Runs a command in an Executor object. If an error occours after delay
+       * it will try to run the command again up to a maximum of maxTries.
+       *
+       * @param  {String} cmd      The command to be executed.
+       * @param  {array} args     Array of strings with the command args.
+       * @param  {number} maxTries Max number of retries. 0 will retry without end.
+       * @param  {number} delay    Milliseconsd between retries.
+       * @return {object}          Executor object that will stop the command execution.
+       */
+      function runCmdOnExecutor(cmd, args, maxTries, delay) {
+        let tryCount = 0
+          // Initiate the curl command data transmission
+        let executor = new utils.Executor(cmd, args, (err, stdout, stderr) => {
+          if (err) {
+            console.log(err)
+            if (stderr) {
+              console.log('stderr:', stderr)
+            }
+            tryCount += 1
+
+            if (maxTries && tryCount < maxTries) {
+              // Try to determine if the error was cause a kill or quit signal
+              // and prevent to retry
+              console.log('(mainCtrl) runCmdOnExecutor retry:', tryCount)
+              if (delay) {
+                $timeout(function() {
+                  executor.run()
+                }, delay)
+              } else {
+                executor.run()
+              }
+            }
+          } else {
+            if (stdout) {
+              console.log('curl stdout:', stdout)
+            }
+            if (stderr) {
+              console.log('curl stderr:', stderr)
+            }
+          }
+        })
+
+        executor.run()
+
+        return executor
+      }
+
+      /**
+       * Starts a data transfer. If error will retry up to maxTries with a delay between tries.
+       * @param  {number} maxTries Max number of tries.
+       * @param  {number} delay    Delay in milliseconsds between tries.
+       * @return {object}          Executor that can be stoped of killed.
+       */
+      function startDataTransfer(maxTries, delay) {
+        return runCmdOnExecutor(CURL_CMD, CURL_ARGS, maxTries, delay)
+      }
+
       function genMXYMsg(position, rows, cols, args) {
         let xStep = 99 / (rows - 1)
         let yStep = 99 / (cols - 1)
@@ -132,8 +204,9 @@ angular.module('MainApp')
         let mS = utils.leftPad(args.motorSpeed ? args.motorSpeed : MOTOR_SPEED, 3, '0')
         let pD = utils.leftPad(args.pollDelay ? args.pollDelay : POLL_DELAY, 3, '0')
         let mT = utils.leftPad(args.maxTries ? args.maxTries : MAX_TRIES, 3, '0')
-
-        return `${MSG_MOVE_XY_CODE}${xPercent}${yPercent}${t}${mS}${pD}${mT}\n`
+        let msg = `${MSG_MOVE_XY_CODE}${xPercent}${yPercent}${t}${mS}${pD}${mT}\n`
+        console.log('genMXYMsg msg:', msg)
+        return msg
       }
 
       function genMMsg(motor, dest, segments, args) {
@@ -147,6 +220,10 @@ angular.module('MainApp')
         let pD = utils.leftPad(args.pollDelay ? args.pollDelay : POLL_DELAY, 3, '0')
         let mT = utils.leftPad(args.maxTries ? args.maxTries : MAX_TRIES, 3, '0')
         return `${motor}${percent}${t}${bS}${mS}${pD}${mT}\n`
+      }
+
+      function sendMsg(msg, callback) {
+        ArduinoComm.writeMsg($scope.port, msg, callback)
       }
 
       /*
@@ -164,7 +241,8 @@ angular.module('MainApp')
         if (coords.length == 2) {
           let x = conversion.percentCoordToDec(Number(coords[0]), tolerance, rows)
           let y = conversion.percentCoordToDec(Number(coords[1]), tolerance, columns)
-          return new utils.Position(x, y)
+          let position = new utils.Position(x, y)
+          return position
         }
       }
 
@@ -182,16 +260,70 @@ angular.module('MainApp')
         })
       }
 
+      // To parse the keyboard introduced manual position.
       function parsePosition(positionStr) {
         let x = 0
         let y = 0
         if (positionStr) {
-          //        [x, y] = positionStr.split(',').map((value, idx, arr) => {return parseInt(value)})
           let values = positionStr.split(',')
           x = parseInt(values[0])
           y = parseInt(values[1])
         }
+        console.log('parsePosition x, y: ', x, y)
         return [x, y]
+      }
+
+      function moveAntennaX(pos, steps, timeout) {
+        //console.log('moving X')
+        let msg = genMMsg(MOTOR_X_CODE, pos, steps, MSG_ARGS_MOTOR_X)
+          //console.log('moving x msg:', msg)
+        if (timeout) {
+          $timeout(function() {
+            sendMsg(msg)
+          }, timeout)
+        } else {
+          sendMsg(msg)
+        }
+      }
+
+      function moveAntennaY(pos, steps, timeout) {
+        //console.log('moving Y')
+        let msg = genMMsg(MOTOR_Y_CODE, pos, steps, MSG_ARGS_MOTOR_Y)
+          //console.log('moving y msg:', msg)
+        if (timeout) {
+          $timeout(function() {
+            sendMsg(msg)
+          }, timeout)
+        } else {
+          sendMsg(msg)
+        }
+      }
+
+      function moveAntennaXY(position, steps, timeout) {
+        let msg = genMXYMsg(position, $scope.rows, $scope.columns, MSG_ARGS)
+        console.log('moving antenna to', position.toString())
+
+        if (timeout) {
+          $timeout(function() {
+            sendMsg(msg)
+          }, timeout)
+        } else {
+          sendMsg(msg)
+        }
+      }
+
+      function resetAntennaPosition(timeout) {
+        let origin = new utils.Position(0, 0)
+        let msg = genMXYMsg(origin, $scope.rows, $scope.columns, MSG_ARGS)
+        console.log('reset antenna position msg:', msg)
+
+        if (timeout) {
+          $timeout(function() {
+            sendMsg(msg)
+          }, timeout)
+        } else {
+          sendMsg(msg)
+        }
       }
 
       function connect(addr, dataCallback, afterCallback) {
@@ -247,10 +379,6 @@ angular.module('MainApp')
         }
       }
 
-      function sendMsg(msg, callback) {
-        ArduinoComm.writeMsg($scope.port, msg, callback)
-      }
-
       /*
       Wifi signal readings:
       For each antenna position we:
@@ -261,18 +389,9 @@ angular.module('MainApp')
         5.- We proceed to the next position.
       */
 
-      function getMeanValue(values) {
-        let numValues = values.length
-        let total = 0
-        for (let i = 0; i < numValues; i += 1) {
-          total += values[i]
-        }
-        return total / numValues
-      }
-
       // Callback will be called after all readings done.
 
-      function genMeanNetStats(netStatsList) {
+      function calcMeanNetStats(netStatsList) {
         let meanLevel = 0
         let meanNoise = 0
         let numStats = netStatsList.length
@@ -285,114 +404,88 @@ angular.module('MainApp')
         // Sorry for this but it's so cute :)
         meanLevel /= numStats
         meanNoise /= numStats
+        meanLevel = Math.round(meanLevel * 100) / 100
+        meanNoise = Math.round(meanNoise * 100) / 100
         return new NetInfo.NetStats(meanLevel, meanNoise)
       }
 
-      function wifiReadings(timeout, delay, readings, callback) {
+      function wifiReadingsV2(timeout, delay, readings, callback) {
         let netStatsList = []
+        let count = 0
+        console.log('wifiReadings Starting readings')
 
-        let afterReadings = function() {
-          //console.log('afterReadings')
-          //console.log('callback =', callback)
-          let netStats = genMeanNetStats(netStatsList)
-            /* Afther this checkBitrate we modify bitrate in the netStats and
-            then we set the scope netstas value.
-            */
-          checkBitrate(() => {
-            console.log('(mainCtrl) checkBitrate-callback changing $scope.nestStats.')
-            netStats.bitrate.rx = $scope.bitrate
-            $scope.netStats = netStats
+        let reading = function() {
+          count += 1
+          NetInfo.getNetStats($scope.selectedDevice, (netStats) => {
+            netStatsList.push(netStats)
           })
+        }
 
-          callback(netStatsList)
+        let afterSuccess = function() {
+          let netStats = calcMeanNetStats(netStatsList)
+          NetInfo.checkRxBitrate($scope.selectedDevice,
+            (err, bitrate) => {
+              let bps = bitrate * 8
+
+              netStats.bitrate.rx = conversion.bps2Mbps(bps)
+                // We update netStats and save antenaPosition to file.
+                // (antennaPosition save herself on change through watcher)
+              $scope.netStats = netStats
+              $scope.positionWithStats = new utils.AntennaPosition(
+                $scope.antennaPosition.x,
+                $scope.antennaPosition.y,
+                netStats
+              )
+              $scope.positionList.push($scope.positionWithStats)
+              if (callback) {
+                $scope.$apply(callback)
+              }
+            })
         }
 
         $timeout(() => {
-          /*
-          Clear the readings counter.
-          Empty the reading list.
-          */
-          //console.log('Inside timeout function')
-
-          $interval(() => {
-            //console.log('Inside timmer function')
-            NetInfo.getNetStats($scope.selectedDevice, (netStats) => {
-              netStatsList.push(netStats)
-              $scope.positionWithStats = new utils.AntennaPosition($scope.antennaPosition.x, $scope.antennaPosition.y, netStats)
-            })
-          }, delay, readings).then(afterReadings, (error) => {
-            console.log('WiFi readings error:', error)
-          })
+          $interval(reading, delay, readings).then(afterSuccess)
         }, timeout)
       }
 
+      function bestPositionLevel(positionList) {
+        let maxPos
+        if (positionList && positionList.length > 0) {
+          maxPos = positionList[0]
 
-      function moveAntennaX(pos, steps, timeout) {
-        //console.log('moving X')
-        let msg = genMMsg(MOTOR_X_CODE, pos, steps, MSG_ARGS_MOTOR_X)
-          //console.log('moving x msg:', msg)
-        if (timeout) {
-          $timeout(function() {
-            sendMsg(msg)
-          }, timeout)
-        } else {
-          sendMsg(msg)
+          positionList.forEach((position) => {
+            if (position.stats.level > maxPos.stats.level) {
+              maxPos = position
+            }
+          })
         }
+        return maxPos
       }
 
-      function moveAntennaY(pos, steps, timeout) {
-        //console.log('moving Y')
-        let msg = genMMsg(MOTOR_Y_CODE, pos, steps, MSG_ARGS_MOTOR_Y)
-          //console.log('moving y msg:', msg)
-        if (timeout) {
-          $timeout(function() {
-            sendMsg(msg)
-          }, timeout)
-        } else {
-          sendMsg(msg)
+      function bestPositionBitrate(positionList) {
+        let maxPos
+        if (positionList && positionList.length > 0) {
+          maxPos = positionList[0]
+
+          positionList.forEach((position, idx, arr) => {
+            if (position.stats.bitrate.rx > maxPos.stats.bitrate.rx) {
+              maxPos = position
+            }
+          })
         }
+        return maxPos
       }
-
-      function moveAntennaXY(position, steps, timeout) {
-        let msg = genMXYMsg(position, $scope.rows, $scope.columns, MSG_ARGS)
-        console.log('moving antenna to', position.toString())
-
-        if (timeout) {
-          $timeout(function() {
-            sendMsg(msg)
-          }, timeout)
-        } else {
-          sendMsg(msg)
-        }
-      }
-
-      function resetAntennaPosition(timeout) {
-        let origin = new utils.Position(0, 0)
-        let msg = genMXYMsg(origin, $scope.rows, $scope.columns, MSG_ARGS)
-        console.log('reset antenna position msg:', msg)
-
-        if (timeout) {
-          $timeout(function() {
-            sendMsg(msg)
-          }, timeout)
-        } else {
-          sendMsg(msg)
-        }
-      }
-
 
       function init() {
-        // List of deregistration functions to be able to stop watchers.
-        // Every time we stablish a watcher we add it's returned deregistration
-        // function to the list.
-        // Specially in the nested controllers.
 
-        // Configuration
+
+          // Configuration
         $scope.configuration = {
           mode: 'auto',
           numberOfReadings: 5,
           readingDelay: 1000
         }
+
 
         $scope.connected = false
         $scope.started = false
@@ -404,22 +497,33 @@ angular.module('MainApp')
 
         $scope.maxPositions = $scope.rows * $scope.columns
 
+        $scope.positionWithStats = null
+        $scope.positionList = []
+        $scope.currentPosition = new utils.Position(0, 0)
+        $scope.antennaPosition = null
 
-        $scope.positionWithStats = undefined
-        $scope.tempStats = undefined
 
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
+
+        // Start data transfer
+        curlProcess = startDataTransfer(10, 3000)
+
+        // Stop process on application end.
+        app.on('quit', () => {
+          curlProcess.quit()
+        })
 
         setDeviceSelectionMenu()
 
         // Watch changes in positionWithStats -> save values to file.ç
         /* This watcher doesn't require deep check nor to be persistent */
-        WatcherTracker.registerWatcher($scope,
+        WatcherTracker.registerWatcher('positionWithStats', $scope,
           (scope) => {
             return scope.positionWithStats
           }, (newValue, oldValue) => {
-            console.log('Position + stats: (new)', newValue, '(old)', oldValue)
+            console.log('positionWithStats: (new)', newValue, '(old)', oldValue)
             if (newValue) {
+
               newValue.appendFile($scope.fileName)
             }
           },
@@ -436,7 +540,7 @@ angular.module('MainApp')
             $scope.$apply(() => {
               $scope.antennaPosition = parseArduinoMsg(data, $scope.rows, $scope.columns)
                 // When we reach a new position we make a bitrate checkpoit
-              checkBitrate()
+              NetInfo.checkRxBitrate($scope.selectedDevice)
               console.log('Antenna position:', $scope.antennaPosition)
             })
           }
@@ -461,10 +565,14 @@ angular.module('MainApp')
             $timeout(() => {
               console.log('Some time after?')
               ArduinoComm.getAddr((err, addr) => {
-                console.log('Arduino serial addr:', addr)
-                connect(addr, afterDataCallback, afterConnectCallback)
+                if (err) {
+                  throw err
+                } else {
+                  console.log('Arduino serial addr:', addr)
+                  connect(addr, afterDataCallback, afterConnectCallback)
+                }
               })
-            }, 2500)
+            }, 500)
           }
         })
 
@@ -478,26 +586,10 @@ angular.module('MainApp')
           }
         })
 
-        // Initiate the curl command data transmission
-        $scope.executor = new utils.Executor(CURL_CMD, CURL_ARGS, (err, stdout, stderr) => {
-          if (err) {
-            console.log(err)
-          } else {
-            if (stdout) {
-              console.log('curl stdout:', stdout)
-            }
-            if (stderr) {
-              console.log('curl stderr:', stderr)
-            }
-          }
-        })
-        $scope.executor.run()
-          // First bitrate check.
-        checkBitrate()
-
         //       Try to connect
         //       Try to get Arduino addr
-        ArduinoComm.getAddr((addr) => {
+        ArduinoComm.getAddr((err, addr) => {
+          if (err) throw err
           if (addr) {
             console.log('Arduino serial addr:', addr)
             connect(addr, afterDataCallback, afterConnectCallback)
@@ -510,181 +602,146 @@ angular.module('MainApp')
       $scope.test = function() {
 
         NetInfo.getRxTxStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
-            if (err) {
-              console.log(err)
-            } else {
-              console.log(receive)
-              console.log(transmit)
-              console.log(new Date(timestamp))
-              $scope.pbsCheck = {
-                bytes: receive.bytes,
-                timestamp: timestamp
-              }
-            }
-          })
-          //      let serialport = require('serialport')
-          //      serialport.list((err, ports) => {
-          //        console.log('err:', err)
-          //        console.log('ports:', ports)
-          //      })
-
-
-
-
-        // TESTING parseArduinoMsg
-        //      let positions = []
-        //      for (let i = 0; i < 100; i += 10) {
-        //        for (let j = 0; j < 100; j += 10) {
-        //          positions.push({x: i, y: j})
-        //        }
-        //      }
-        //      let newPos
-        //      positions.forEach((position, idx, arr) => {
-        //        newPos = parseArduinoMsg(`${position.x}, ${position.y}`)
-        //        console.log(`${position.x}, ${position.y} = ${newPos.toString()}`)
-        //      })
-        //      let position
-        //      for (let i = 0; i < 100; i += 10) {
-        //        try {
-        //          position = utils.percentCoordToDec(i, DEFAULTS.rows, DEFAULTS.motorTolerance)
-        //          console.log(`${i} % -> ${position}`)
-        //        }
-        //        catch (ex) {
-        //          console.log ('Exception:', ex)
-        //        }
-        //      }
-
-
-      }
-
-      function checkBitrate(callback) {
-        NetInfo.getRx($scope.selectedDevice, (err, bytes, timestamp) => {
-          console.log('(mainCtrl) at checkBitrate.')
           if (err) {
             console.log(err)
           } else {
-            $scope.$apply(function() {
-              if ($scope.rxStats) {
-                console.log('(mainCtrl) checkBitrate rxStats:', $scope.rxStats)
-                let elapsedTime = timestamp - $scope.rxStats.timestamp
-                console.log('(mainCtrl) elapsedTime:', elapsedTime)
-                let receivedBytes = (bytes - $scope.rxStats.bytes)
-                console.log('(mainCtrl) receivedBytes:', receivedBytes)
-                let bps = (receivedBytes * 8) * (elapsedTime / 1000)
-                $scope.bitrate = conversion.bps2Kbps(bps) // Kbyte/s
-                console.log('(mainCtrl) ($scope.)bitrate:', $scope.bitrate)
-              } else {
-                console.log('(mainCtrl) checkBitrate rxStats was undefined')
-                $scope.bitrate = 0
-              }
-
-              $scope.rxStats = {
-                bytes: bytes,
-                timestamp: timestamp
-              }
-              if (callback) {
-                console.log('(mainCtrl) checkBitrate calling callback.')
-                callback()
-              }
-            })
+            console.log(receive)
+            console.log(transmit)
+            console.log(new Date(timestamp))
+            $scope.pbsCheck = {
+              bytes: receive.bytes,
+              timestamp: timestamp
+            }
           }
         })
       }
 
       self.start = function start() {
-        console.log('starting...')
         $scope.started = true
+
+        console.log('starting...')
         console.log('connected:', $scope.connected)
         console.log('mode:', $scope.configuration.mode)
+
+        console.log('setting initial position')
+        $scope.currentPosition.set(0, 0)
+
+        WatcherTracker.registerWatcher('currentPosition', $scope,
+          scope => scope.currentPosition,
+          (newValue, oldValue) => {
+            console.log('(mainCtrl) currentPosition changed: (old)', oldValue.toString(), '(new)', newValue.toString())
+            if (newValue) {
+              if (newValue.x === 0 && newValue.y === 0) {
+                resetAntennaPosition()
+              } else if (!angular.equals(newValue, oldValue)) {
+                console.log('They are different!')
+                console.log('newValue:', newValue.toString())
+                console.log('oldValue:', oldValue.toString())
+                if (newValue.x === oldValue.x) {
+                  console.log('moving Y')
+                  moveAntennaY(newValue.y, $scope.rows, 500)
+                } else if (newValue.y === oldValue.y) {
+                  console.log('moving X')
+                  moveAntennaX(newValue.x, $scope.columns, 500)
+                } else {
+                  console.log('moving XY')
+                  moveAntennaXY(newValue, $scope.rows, $scope.columns, 500)
+                }
+              }
+            } else {
+              // We reached the end of the cicle
+              console.log('The end.')
+              self.stop()
+              resetAntennaPosition(1000)
+                // lets go to the best position.
+                // TODO: Implement goint to the best position.
+
+            }
+          },
+          true,
+          false
+        )
+
+        // Watch changes in antennaPosition -> trigger wifi readings.
+        /* Once Arduino tells us there is a new position ( -> change in
+        antennaPosition) we do our readings*/
+        let afterWifiReadings = function() {
+          console.log('(afterReadings)')
+          console.log('configuration mode:', $scope.configuration.mode)
+          if ($scope.configuration.mode === 'auto') {
+            // If auto mode we proceed to the next position.
+
+            $scope.currentPosition.next($scope.rows, $scope.columns)
+            console.log('new current position: ', $scope.currentPosition)
+              // The end will be when currentPosition.next(returns false) and
+              // positions don't change anymore.
+          } else {
+            // We end the process here.
+            console.log('The end.(manual mode)')
+            self.stop()
+            resetAntennaPosition(1000)
+          }
+        }
+
+        WatcherTracker.registerWatcher('antennaPosition', $scope,
+          (scope) => {
+            return scope.antennaPosition
+          }, (newValue, oldValue) => {
+            console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
+            if (newValue) {
+              // As we know that we are in a new position we check the bitrate.
+              // checkBitrate()
+              NetInfo.checkRxBitrate($scope.selectedDevice)
+                // timeout, delay, readings, filePath, callback
+              wifiReadingsV2(1500,
+                  $scope.configuration.readingDelay,
+                  $scope.configuration.numberOfReadings,
+                  afterWifiReadings
+                )
+                // wifiReadings(1500,
+                //   $scope.configuration.readingDelay,
+                //   $scope.configuration.numberOfReadings,
+                //   afterWifiReadings)
+            }
+          },
+          false,
+          false
+        )
 
         /* We restart the warcher in case needed. Watcher already registered
         won't be registered again. */
         WatcherTracker.startWatchers()
 
-        let afterWifiReadings
-        if ($scope.configuration.mode === 'auto') {
-          afterWifiReadings = function() {
-            //console.log('(mainCtrl) after wifi?')
-            $scope.currentPosition.next($scope.rows, $scope.columns)
-          }
-        } else {
-          afterWifiReadings = function() {
-            resetAntennaPosition(500)
-            stop()
-          }
-        }
+        switch ($scope.configuration.mode) {
+          case 'auto':
+            console.log('Starting in auto mode...')
+              // Start of the sequence.
+              // $scope.currentPosition = new utils.Position(0, 0)
+              // I need to use this timeout to force the watcher to see this change
 
-        if ($scope.connected) {
-          // Watch changes in antennaPosition -> trigger wifi readings.
-          /* Once Arduino tells us there is a new position ( -> change in
-          antennaPosition) we do our readings*/
-          WatcherTracker.registerWatcher($scope,
-            (scope) => {
-              return scope.antennaPosition
-            }, (newValue, oldValue) => {
-              if (newValue) {
-                // timeout, delay, readings, filePath, callback)
-                wifiReadings(1500, $scope.configuration.readingDelay, $scope.configuration.numberOfReadings, afterWifiReadings)
-              }
-            },
-            false,
-            false
-          )
-
-          switch ($scope.configuration.mode) {
-            case 'auto':
-              console.log('Starting in auto mode...')
-              /* As this watcher will depend on the mode, won't be persistent */
-              WatcherTracker.registerWatcher($scope,
-                (scope) => {
-                  return scope.currentPosition
-                }, (newValue, oldValue) => {
-                  console.log('(mainCtrl) currentPosition changed: (old)', oldValue, '(new)', newValue)
-                  if (newValue) {
-                    if (newValue.x === 0 && newValue.y === 0) {
-                      // We ensure that we start at X = 0, y = 0
-                      resetAntennaPosition(500)
-                    } else if (oldValue) {
-                      if (newValue.x != oldValue.x) {
-                        //console.log('Moving X to: ', newValue.x)
-                        moveAntennaX(newValue.x, $scope.rows)
-                      } else if (newValue.y != oldValue.y) {
-                        //console.log('Moving Y to', newValue.y)
-                        moveAntennaY(newValue.y, $scope.columns)
-                      }
-                    }
-                  } else {
-                    // We reached the end of the cicle
-                    console.log('(mainCtrl) currentPosition changed:', $scope.currentPosition)
-                    resetAntennaPosition(1500)
-                    stop()
-                  }
-                },
-                true,
-                false
-              )
-                // Start of the sequence.
-              $scope.currentPosition = new utils.Position(0, 0)
-              break
-            case 'manual':
-              console.log('starting in manual...')
-              let [x, y] = parsePosition($scope.manualPosition)
-              $scope.currentPosition.setCoords(x, y)
-              break
-          }
-
+            $timeout(() => {
+              $scope.currentPosition.set(0, 0)
+            }, 1)
+            console.log('just changed currentPosition:', $scope.currentPosition)
+            break
+          case 'manual':
+            console.log('starting in manual...')
+            let [x, y] = parsePosition($scope.manualPosition)
+            $timeout(() => {
+                $scope.currentPosition.set(x, y)
+              }, 1)
+              // $scope.currentPosition.set(x, y)
+            break
         }
       }
 
       self.stop = function stop() {
         // Stop curl executor
-        $scope.executor.quit()
+        WatcherTracker.cleanWatchers()
+        $scope.started = false
+        curlProcess.quit()
 
         // Deregister watchers.
-        WatcherTracker.cleanWatchers()
-        //disconnect()
-
-        $scope.started = false
       }
 
       init()
