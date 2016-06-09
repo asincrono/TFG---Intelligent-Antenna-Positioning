@@ -1,192 +1,194 @@
-angular.module('MainApp')
-  .controller('ChartController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
-    'use strict'
+angular.module('MainApp').controller('ChartController', ['$scope', '$interval', function($scope, $interval) {
 
-    function positionToNumber(position, rows, columns) {
-      let left = position.x % 2
-      if (left) {
-        return position.x * rows + (columns - position.y - 1)
-      } else {
-        return position.x * rows + position.y
-      }
-    }
-
-    /* Generator to generate objects with the pair value, format for the
-    hAxis ticks values.*/
-    function* positionTextGen(rows, columns) {
-      let limit = rows * columns
-      let position = 0
-      let x = 0
-      let y = 0
-      while (position < limit) {
-        yield({
-          v: position,
-          f: `${x}, ${y}`
-        })
-
-        if (x % 2 === 0) {
-          y += 1
-          if (y === columns) {
-            y -= 1
-            x += 1
-          }
-        } else {
-          y -= 1
-          if (y === -1) {
-            y += 1
-            x += 1
-          }
-        }
-        position += 1
-      }
-    }
-
-    function genHTicks(rows, columns) {
-      let hTicks = []
-      let pairValFormat = positionTextGen(rows, columns)
-
-      let pair = pairValFormat.next().value
-
-      while (pair) {
-        hTicks.push(pair)
-        pair = pairValFormat.next().value
-      }
-      return hTicks
-    }
-
-    const CHART_OPTIONS = {
-      title: 'Signal stats and bitrate for different antenna positions',
-
-      //        width: 1150,
-      //        height: 600,
-
-      series: {
-        1: {targetAxisIndex: 1},
-        2: {targetAxisIndex: 2}
-      },
-
-      hAxis: {
-        title: 'Positions',
-        ticks: genHTicks($scope.rows, $scope.columns),
-        viewWindow: {
-          min: 0,
-          max: 15
-        }
-      },
-
-      vAxes: {
-        0: {
-          title: 'Level',
-          minValue: -100,
-          maxValue: -30
-        },
-        1: {
-          title: 'Bitrate (Mbps)',
-          minValue: 0,
-          maxValue: 100,
-        }
-      },
-
-      animation: {
-        startup: true,
-        duration: 750,
-        easing: 'out'
-      },
-
-      legend: {
-        position: 'bottom'
-      },
-
-      explorer: {
-        axis: 'horizontal',
-        actions: [
-          'dragToPan'
+      $scope.data = {
+        dataset0: [
+          {x: 0, val_1: 0, val_2: 0, val_3: 0},
+          {x: 1, val_1: 3.894, val_2: 8.47, val_3: 14.347},
+          {x: 2, val_1: 7.174, val_2: 13.981, val_3: 19.991},
+          {x: 3, val_1: 9.32, val_2: 14.608, val_3: 13.509},
+          {x: 4, val_1: 9.996, val_2: 10.132, val_3: -1.167},
+          {x: 5, val_1: 9.093, val_2: 2.117, val_3: -15.136},
+          {x: 6, val_1: 6.755, val_2: -6.638, val_3: -19.923},
+          {x: 7, val_1: 3.35, val_2: -13.074, val_3: -12.625}
         ]
-      },
-      theme: 'material'
+      }
+
+    $scope.options = {
+      series: [
+        {
+          axis: "y",
+          dataset: "dataset0",
+          key: {
+            val_1
+
+                    }
+          label: "An area series",
+          color: "#1f77b4",
+          type: ['line', 'dot', 'area'],
+          id: 'mySeries0'
+        }
+      ],
+      axes: {x: {key: "x"}}
     }
+  // $scope.options = {
+  //   margin: {
+  //     top: 5
+  //   },
+  //   pan: {
+  //     x: true
+  //   },
+  //   series: [{
+  //     label: 'Level',
+  //     color: 'red',
+  //     type: ['line', 'dot'],
+  //     axis: 'y',
+  //     dataset: 'd',
+  //     key: 'lv',
+  //     id: 'level'
+  //   }, {
+  //     label: 'Bitrate',
+  //     color: 'blue',
+  //     type: ['line', 'dot'],
+  //     axis: 'y2',
+  //     dataset: 'd',
+  //     key: 'br',
+  //     id: 'bitrate'
+  //   }],
+  //   axes: {
+  //     x: {
+  //       key: 'x',
+  //       min: 0,
+  //       max: 5
+  //     },
+  //     y: {
+  //       min: 0,
+  //       max: 20
+  //     },
+  //     y2: {
+  //       min: 0,
+  //       max: -100
+  //     }
+  //   }
+  // }
+  //
+  // $scope.data = {
+  //   d: [{
+  //     x: 0,
+  //     lv: 0,
+  //     br: -100
+  //   }]
+  // }
+  //
+  // let x = 0
+  // let l = 0
+  // let b = -100
+  //
+  // $interval(() => {
+  //   $scope.data.d.push({
+  //     x: x += 1,
+  //     lv: l += 0.1,
+  //     br: b += 10
+  //   })
+  //
+  //   if (x > 5) {
+  //     $scope.options.axes.x.min += 1
+  //     $scope.options.axes.x.max += 1
+  //   }
+  // }, 1000, 9)
 
-    let chart
-    let data
-    let position
-    let rowPos
-
-    function drawChart(chart, data, options) {
-      chart.draw(data, options)
-    }
-
-    function initChart() {
-
-      data = new google.visualization.DataTable()
-
-      data.addColumn({
-        type: 'number',
-        label: 'Position'
-      })
-
-      data.addColumn({
-        type: 'number',
-        label: 'Level'
-      })
-
-      data.addColumn({
-        type: 'number',
-        label: 'Bitrate'
-      })
-
-      chart = new google.visualization.LineChart(document.getElementById('linechart'))
-      chart.draw(data, CHART_OPTIONS)
-    }
-
-    function updateChart(dataRow) {
-      /* Update dataTable */
-      data.addRow(dataRow)
-      drawChart(chart, data, CHART_OPTIONS)
-    }
-
-    function reset() {
-      rowPos = 0
-      position = 0
-
-      data = new google.visualization.DataTable()
-      data.addColumn('number', 'Position')
-      data.addColumn('number', 'Level', 'level')
-      data.addColumn('number', 'Bitrate', 'bitrate')
-
-      new google.visualization.LineChart(document.getElementById('linechart'))
-    }
-
-    function init() {
-      rowPos = 0
-      position = 0
-
-      google.charts.load('current', {
-        'packages': ['corechart']
-      })
-
-      google.charts.setOnLoadCallback(initChart)
-
-      // Setting up a persisten watcher.
-      /* A persisten watcher is one that won't be removed if you start the app
-      again (start isn't the same as reload or restart)
-      Watchers in init usually are persistent */
-      WatcherTracker.registerWatcher('chartCtrl netStats', $scope,
-        (scope) => {
-          return scope.netStats
-        },
-        (newValue, oldValue) => {
-          if (newValue) {
-            if (chart) {
-              // console.log('(chartCtrl) $scope.netStats.bitrate.rx', $scope.netStats.bitrate.rx)
-              updateChart([positionToNumber($scope.antennaPosition,
-                $scope.rows, $scope.columns),
-                newValue.level, newValue.bitrate.rx])
-            }
-          }
-        },
-        true,
-        true
-      )
-    }
-    init()
-  }])
+  // $scope.options = {
+  //   margin: {
+  //     top: 5
+  //   },
+  //   series: [{
+  //     axis: "y",
+  //     dataset: "tolerance",
+  //     key: "average",
+  //     label: "Main series",
+  //     color: "hsla(88, 48%, 48%, 1)",
+  //     type: [
+  //       "dot",
+  //       "line"
+  //     ],
+  //     id: "tolerance"
+  //   }, {
+  //     axis: "y2",
+  //     dataset: "tolerance",
+  //     key: "extrema_min",
+  //       // y1: "extrema_max"
+  //     label: "Extrema",
+  //     color: "hsla(88, 48%, 48%, 1)",
+  //     type: [
+  //       "line", "dot"
+  //     ],
+  //     id: "extrema"
+  //   }],
+  //   axes: {
+  //     x: {
+  //       key: "x"
+  //     },
+  //     y: {
+  //       min: 0,
+  //       max: 40
+  //     },
+  //     y2: {
+  //       min: 0,
+  //       max: 100
+  //     }
+  //   }
+  // }
+  //
+  // $scope.data = {
+  //   tolerance: [{
+  //     x: 0,
+  //     average: 23,
+  //     extrema_min: 19,
+  //     extrema_max: 26
+  //   }, {
+  //     x: 1,
+  //     average: 23,
+  //     extrema_min: 20,
+  //     extrema_max: 28
+  //   }, {
+  //     x: 2,
+  //     average: 20,
+  //     extrema_min: 15,
+  //     extrema_max: 23
+  //   }, {
+  //     x: 3,
+  //     average: 22,
+  //     extrema_min: 18,
+  //     extrema_max: 24
+  //   }, {
+  //     x: 4,
+  //     average: 23,
+  //     extrema_min: 18,
+  //     extrema_max: 25
+  //   }, {
+  //     x: 5,
+  //     average: 20,
+  //     extrema_min: 18,
+  //     extrema_max: 25
+  //   }, {
+  //     x: 6,
+  //     average: 21,
+  //     extrema_min: 19,
+  //     extrema_max: 25
+  //   }, {
+  //     x: 7,
+  //     average: 25,
+  //     extrema_min: 21,
+  //     extrema_max: 30
+  //   }, {
+  //     x: 8,
+  //     average: 22,
+  //     extrema_min: 18,
+  //     extrema_max: 26
+  //   }, {
+  //     x: 9,
+  //     average: 21,
+  //     extrema_min: 17,
+  //     extrema_max: 24
+  //   }]
+  // }
+}])

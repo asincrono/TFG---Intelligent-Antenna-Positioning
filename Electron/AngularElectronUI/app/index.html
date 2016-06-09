@@ -6,13 +6,15 @@
   <title>Antenna Position Controller</title>
   <link rel="stylesheet" href="css/master.css">
   <link rel="stylesheet" href="bower_components/angular-material/angular-material.css">
-  <!--  <script src="js/vendors/jquery-2.2.1.js" onload="window.$ = window.jQuery = module.exports;"></script>-->
+  <link rel="stylesheet" href="css/vendors/LineChart.css" media="screen" title="no title" charset="utf-8">
+  <!-- <link rel="stylesheet" href="node_modules/n3-charts/build/LineChart.css"> -->
 
   <!--  Angular Material Dependencies-->
   <script>
 
 
   </script>
+  <!--  n3-line-chart  -->
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-aria/angular-aria.js"></script>
   <script src="bower_components/angular-animate/angular-animate.js"></script>
@@ -20,9 +22,9 @@
   <!--  Angular Material JS-->
   <script src="bower_components/angular-material/angular-material.js"></script>
    <!-- <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> -->
-  <script type="text/javascript" src="js/vendors/loader.js"></script>
-  <!-- ng-electron to reach electron main process from angular code -->
-<!--  <script src="bower_components/ng-electron/ng-electron.js"></script>-->
+
+  <!-- <script src="node_modules/n3-charts/build/LineChart.js"></script> -->
+  <script src="js/vendors/LineChart.js" charset="utf-8"></script>
 </head>
 
 <body ng-app="MainApp">
@@ -98,7 +100,8 @@
 
     <md-divider></md-divider>
 
-    <div class="chart-div" id="linechart" ng-controller="ChartController as chartCtrl">
+    <div class="chart-div" ng-controller="ChartController as chartCtrl">
+      <Linechart data="data" options="options"></Linechart>
     </div>
   </div>
 </body>

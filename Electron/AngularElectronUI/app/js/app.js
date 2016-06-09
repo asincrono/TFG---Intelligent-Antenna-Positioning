@@ -133,6 +133,9 @@ if (process.platform === 'darwin') {
  )
 }
 
+// make d3 accessible
+const d3 = require('d3')
+
 const appMenu = Menu.buildFromTemplate(menuTemplate)
 Menu.setApplicationMenu(appMenu)
 // MAYBE ADD CONTEXT MENU?
@@ -141,4 +144,4 @@ Menu.setApplicationMenu(appMenu)
 //   menu.popup(remote.getCurrentWindow())
 // }, false)
 
-angular.module('MainApp', ['ngMaterial'])
+angular.module('MainApp', ['ngMaterial', 'n3-line-chart'])

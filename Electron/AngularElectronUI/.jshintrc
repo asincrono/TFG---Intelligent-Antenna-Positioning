@@ -1,5 +1,5 @@
 {
-  "predef": ["angular", "google"],
+  "predef": ["angular"],
   "asi": true,
   "node": true,
   "multistr": true,
