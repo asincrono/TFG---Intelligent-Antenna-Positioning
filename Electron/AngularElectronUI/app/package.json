@@ -8,6 +8,7 @@
     "gulp": "^3.9.1"
   },
   "dependencies": {
+    "chart.js": "^2.1.4",
     "electron-prebuilt": "1.1.2",
     "material-design-icons": "^2.2.3",
     "serialport": "^4.0.0-beta3",

@@ -54,139 +54,22 @@ angular.module('MainApp')
       return hTicks
     }
 
-    const CHART_OPTIONS = {
-      title: 'Signal stats and bitrate for different antenna positions',
-
-      //        width: 1150,
-      //        height: 600,
-
-      series: {
-        1: {targetAxisIndex: 1},
-        2: {targetAxisIndex: 2}
-      },
-
-      hAxis: {
-        title: 'Positions',
-        ticks: genHTicks($scope.rows, $scope.columns),
-        viewWindow: {
-          min: 0,
-          max: 15
-        }
-      },
-
-      vAxes: {
-        0: {
-          title: 'Level',
-          minValue: -100,
-          maxValue: -30
-        },
-        1: {
-          title: 'Bitrate (Mbps)',
-          minValue: 0,
-          maxValue: 100,
-        }
-      },
-
-      animation: {
-        startup: true,
-        duration: 750,
-        easing: 'out'
-      },
-
-      legend: {
-        position: 'bottom'
-      },
-
-      explorer: {
-        axis: 'horizontal',
-        actions: [
-          'dragToPan'
-        ]
-      },
-      theme: 'material'
-    }
-
-    let chart
-    let data
-    let position
-    let rowPos
-
-    function drawChart(chart, data, options) {
-      chart.draw(data, options)
-    }
-
-    function initChart() {
-
-      data = new google.visualization.DataTable()
-
-      data.addColumn({
-        type: 'number',
-        label: 'Position'
-      })
-
-      data.addColumn({
-        type: 'number',
-        label: 'Level'
-      })
-
-      data.addColumn({
-        type: 'number',
-        label: 'Bitrate'
-      })
-
-      chart = new google.visualization.LineChart(document.getElementById('linechart'))
-      chart.draw(data, CHART_OPTIONS)
-    }
-
-    function updateChart(dataRow) {
-      /* Update dataTable */
-      data.addRow(dataRow)
-      drawChart(chart, data, CHART_OPTIONS)
-    }
-
-    function reset() {
-      rowPos = 0
-      position = 0
-
-      data = new google.visualization.DataTable()
-      data.addColumn('number', 'Position')
-      data.addColumn('number', 'Level', 'level')
-      data.addColumn('number', 'Bitrate', 'bitrate')
-
-      new google.visualization.LineChart(document.getElementById('linechart'))
-    }
-
     function init() {
-      rowPos = 0
-      position = 0
+      const Chart = require('chart.js')
 
-      google.charts.load('current', {
-        'packages': ['corechart']
+      let levelCtx = getElementById('levelChart')
+      let bitrateCtx = getElementById('bitrateChart')
+
+      let levelOptions = {}
+      let levelData = {}
+
+      let levelChart = new Chart(levelCtx, {
+        type: 'line',
+        options: levelOptions,
+        data: levelData
       })
 
-      google.charts.setOnLoadCallback(initChart)
-
-      // Setting up a persisten watcher.
-      /* A persisten watcher is one that won't be removed if you start the app
-      again (start isn't the same as reload or restart)
-      Watchers in init usually are persistent */
-      WatcherTracker.registerWatcher('chartCtrl netStats', $scope,
-        (scope) => {
-          return scope.netStats
-        },
-        (newValue, oldValue) => {
-          if (newValue) {
-            if (chart) {
-              // console.log('(chartCtrl) $scope.netStats.bitrate.rx', $scope.netStats.bitrate.rx)
-              updateChart([positionToNumber($scope.antennaPosition,
-                $scope.rows, $scope.columns),
-                newValue.level, newValue.bitrate.rx])
-            }
-          }
-        },
-        true,
-        true
-      )
     }
+
     init()
   }])
