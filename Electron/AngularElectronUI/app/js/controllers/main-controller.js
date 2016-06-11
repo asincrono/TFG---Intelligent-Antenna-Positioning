@@ -31,7 +31,7 @@ angular.module('MainApp')
       const USER = 'tfg'
       const PASS = 'tfg'
       const CURL_CMD = 'curl'
-      const CURL_ARGS = ['-s', '-o', '/dev/null', '-u', `${USER}:${PASS}`, '-w', '"%{speed_download}"', URL]
+      const CURL_ARGS = ['-o', '/dev/null', '-u', `${USER}:${PASS}`, '-w', '"%{speed_download}"', URL]
 
       // max bitrate according to AP
       const MAX_BITRATE_M = 450
@@ -152,23 +152,6 @@ angular.module('MainApp')
         let executor = new utils.Executor(cmd, args, (err, stdout, stderr) => {
           if (err) {
             console.log(err)
-            if (stderr) {
-              console.log('stderr:', stderr)
-            }
-            tryCount += 1
-
-            if (maxTries && tryCount < maxTries) {
-              // Try to determine if the error was cause a kill or quit signal
-              // and prevent to retry
-              console.log('(mainCtrl) runCmdOnExecutor retry:', tryCount)
-              if (delay) {
-                $timeout(function() {
-                  executor.run()
-                }, delay)
-              } else {
-                executor.run()
-              }
-            }
           } else {
             if (stdout) {
               console.log('curl stdout:', stdout)
@@ -190,8 +173,24 @@ angular.module('MainApp')
        * @param  {number} delay    Delay in milliseconsds between tries.
        * @return {object}          Executor that can be stoped of killed.
        */
-      function startDataTransfer(maxTries, delay) {
-        return runCmdOnExecutor(CURL_CMD, CURL_ARGS, maxTries, delay)
+      function startDataTransfer(retries, delay, timeout) {
+        let curl_args = CURL_ARGS.slice()
+          // --retry argument
+        if (retries) {
+          curl_args.push('--retry')
+          curl_args.push(retries)
+        }
+        // --connect-timeot
+        if (timeout) {
+          curl_args.push('--connect-timeot')
+          curl_args.push(timeout)
+        }
+        // curl argument --retry-delay
+        if (delay) {
+          curl_args.push('--retry-delay')
+          curl_args.push(Math.trunc(delay / 1000))
+        }
+        return runCmdOnExecutor(CURL_CMD, CURL_ARGS)
       }
 
       function genMXYMsg(position, rows, cols, args) {
@@ -479,7 +478,7 @@ angular.module('MainApp')
       function init() {
 
 
-          // Configuration
+        // Configuration
         $scope.configuration = {
           mode: 'auto',
           numberOfReadings: 5,
@@ -506,7 +505,7 @@ angular.module('MainApp')
         $scope.fileName = genTimestampedFileName('data', 'WiFiReadings', '.txt')
 
         // Start data transfer
-        curlProcess = startDataTransfer(10, 3000)
+        curlProcess = startDataTransfer(10, 3000, 3000)
 
         // Stop process on application end.
         app.on('quit', () => {

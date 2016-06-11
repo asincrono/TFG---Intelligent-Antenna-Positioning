@@ -204,9 +204,10 @@ class Executor {
 
   callback(err, stdout, stderr) {
     if (err) {
-      console.log(err)
       if (this.cb) {
         this.cb(err)
+      } else {
+        throw err
       }
     } else if (stdout) {
         console.log(stdout)

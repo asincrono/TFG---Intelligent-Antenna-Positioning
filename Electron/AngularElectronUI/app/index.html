@@ -101,7 +101,8 @@
     <md-divider></md-divider>
 
     <div class="chart-div" ng-controller="ChartController as chartCtrl">
-      <Linechart data="data" options="options"></Linechart>
+      <h3 class="md-title">Signal level and bitrate in Mbps</h3>
+      <Linechart data="data" options="options" on-click="chartCtrl.clickFunction(row, index, series, options)"></Linechart>
     </div>
   </div>
 </body>
