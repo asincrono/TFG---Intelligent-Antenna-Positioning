@@ -1,15 +1,14 @@
-angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
-
+angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTracker', function ($scope, WatcherTracker) {
   let self = this
 
-  self.clickFunction = function(row, index, series, options) {
+  self.clickFunction = function (row, index, series, options) {
     console.log('row:', row)
     console.log('index:', index)
     console.log('series:', series)
     console.log('options:', options)
   }
 
-  function getXFromPos(position, rows, columns) {
+  function getXFromPos (position, rows, columns) {
     if (rows < 0 || columns < 0) {
       // throw new RangeError('Invalid parameter: rows and columns must bet positive')
       throw new RangeError(`Invalid parameter: ${ rows < 0 ? 'rows' : 'columns'}${ rows < 0 && columns < 0 ? ' and colmuns ' : ' '}must bet positive`)
@@ -27,11 +26,10 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
     return x
   }
 
-  function getYFromPos(position, rows, columns) {
+  function getYFromPos (position, rows, columns) {
     if (rows < 0 || columns < 0) {
       throw new RangeError(`Invalid parameter: ${rows < 0 ? 'rows' : 'columns'}${rows < 0 && columns < 0 ? ' and colmuns ' : ' '}must bet positive`)
     }
-
 
     let maxVal = rows * columns
 
@@ -52,7 +50,7 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
     return y
   }
 
-  function getTicks(rows, columns) {
+  function getTicks (rows, columns) {
     let ticks = []
 
     let limit = rows * columns
@@ -63,45 +61,33 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
     return ticks
   }
 
-  function tickFormatFunc(value, index) {
+  function tickFormatFunc (value, index) {
     return `(${getXFromPos(value, $scope.rows, $scope.columns)}, ${getYFromPos(value, $scope.rows, $scope.columns)})`
   }
 
-  function* positionGen(rows, columns) {
-    let pos = 0
-    let limit = rows * columns
-
-    if (pos < limit) {
-      yield(pos)
-    }
-
-    pos += 1
-  }
-
-  function appendData(position, level, bitrate) {
+  function appendData (position, level, bitrate) {
     $scope.data.signalStats.push({
-      x: position.next().value,
+      x: position,
       level: level,
       bitrate: bitrate
     })
   }
 
-  function init() {
-
+  function init () {
     $scope.options = {
       margin: {
         top: 5,
         bottom: 20
       },
       series: [{
-        axis: "y",
-        dataset: "signalStats",
-        key: "level",
-        label: "Signal level",
-        color: "#FF5722",
+        axis: 'y',
+        dataset: 'signalStats',
+        key: 'level',
+        label: 'Signal level',
+        color: '#FF5722',
         type: [
-          "line", 'dot'
-        ],
+          'line', 'dot'
+        ]
       }, {
         axis: 'y2',
         dataset: 'signalStats',
@@ -112,7 +98,7 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
       }],
       axes: {
         x: {
-          key: "x",
+          key: 'x',
           ticks: getTicks($scope.rows, $scope.columns),
           tickFormat: tickFormatFunc,
           min: 0,
