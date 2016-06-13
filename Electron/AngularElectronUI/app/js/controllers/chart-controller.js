@@ -131,6 +131,7 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
       scope => scope.netStats,
       (newValue, oldValue) => {
         if (newValue) {
+          console.log('(chartCtrl) netStats:', newValue)
           appendData(position, newValue.level, newValue.bitrate.rx)
           position += 1
         }
