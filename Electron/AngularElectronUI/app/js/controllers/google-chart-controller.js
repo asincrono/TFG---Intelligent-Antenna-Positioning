@@ -1,8 +1,8 @@
 angular.module('MainApp')
-  .controller('ChartController', ['$scope', 'WatcherTracker', function($scope, WatcherTracker) {
+  .controller('ChartController', ['$scope', 'WatcherTracker', function ($scope, WatcherTracker) {
     'use strict'
 
-    function positionToNumber(position, rows, columns) {
+    function positionToNumber (position, rows, columns) {
       let left = position.x % 2
       if (left) {
         return position.x * rows + (columns - position.y - 1)
@@ -13,13 +13,13 @@ angular.module('MainApp')
 
     /* Generator to generate objects with the pair value, format for the
     hAxis ticks values.*/
-    function* positionTextGen(rows, columns) {
+    function * positionTextGen (rows, columns) {
       let limit = rows * columns
       let position = 0
       let x = 0
       let y = 0
       while (position < limit) {
-        yield({
+        yield ({
           v: position,
           f: `${x}, ${y}`
         })
@@ -41,7 +41,7 @@ angular.module('MainApp')
       }
     }
 
-    function genHTicks(rows, columns) {
+    function genHTicks (rows, columns) {
       let hTicks = []
       let pairValFormat = positionTextGen(rows, columns)
 
@@ -83,7 +83,7 @@ angular.module('MainApp')
         1: {
           title: 'Bitrate (Mbps)',
           minValue: 0,
-          maxValue: 100,
+          maxValue: 100
         }
       },
 
@@ -108,15 +108,12 @@ angular.module('MainApp')
 
     let chart
     let data
-    let position
-    let rowPos
 
-    function drawChart(chart, data, options) {
+    function drawChart (chart, data, options) {
       chart.draw(data, options)
     }
 
-    function initChart() {
-
+    function initChart () {
       data = new google.visualization.DataTable()
 
       data.addColumn({
@@ -138,25 +135,15 @@ angular.module('MainApp')
       chart.draw(data, CHART_OPTIONS)
     }
 
-    function updateChart(dataRow) {
+    function updateChart (dataRow) {
       /* Update dataTable */
       data.addRow(dataRow)
       drawChart(chart, data, CHART_OPTIONS)
     }
 
-    function reset() {
-      rowPos = 0
-      position = 0
-
-      data = new google.visualization.DataTable()
-      data.addColumn('number', 'Position')
-      data.addColumn('number', 'Level', 'level')
-      data.addColumn('number', 'Bitrate', 'bitrate')
-
-      new google.visualization.LineChart(document.getElementById('linechart'))
-    }
-
-    function init() {
+    let rowPos
+    let position
+    function init () {
       rowPos = 0
       position = 0
 
@@ -170,7 +157,7 @@ angular.module('MainApp')
       /* A persisten watcher is one that won't be removed if you start the app
       again (start isn't the same as reload or restart)
       Watchers in init usually are persistent */
-      WatcherTracker.registerWatcher('chartCtrl netStats', $scope,
+      WatcherTracker.registerWatcher('chartCtrl_netStats', $scope,
         (scope) => {
           return scope.netStats
         },
@@ -188,5 +175,6 @@ angular.module('MainApp')
         true
       )
     }
+
     init()
   }])

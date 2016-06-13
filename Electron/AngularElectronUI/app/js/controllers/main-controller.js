@@ -8,19 +8,14 @@ angular.module('MainApp')
       const utils = require('./js/utils/utils.js')
       const conversion = require('./js/utils/conversion.js')
 
-      const PLATFORM = require('os').platform()
-
       const MSG_MOVE_XY_CODE = 0
 
       const MOTOR_X_CODE = 1
       const MOTOR_Y_CODE = 2
 
-      const RECONNECT = true
       const RECONNECT_MAX_TRIES = 3
       const RECONNECT_TIMEOUT = 5000
 
-      //      const PORT_ADDR = '/dev/cu.usbmodem1411'
-      const PORT_ADDR = '/dev/cu.usbmodem1431'
       const BAUD_RATE = 9600
       const TOLERANCE = 5
       const MOTOR_SPEED = 250
@@ -32,9 +27,6 @@ angular.module('MainApp')
       const PASS = 'tfg'
       const CURL_CMD = 'curl'
       const CURL_ARGS = ['-o', '/dev/null', '-u', `${USER}:${PASS}`, '-w', '"%{speed_download}"', URL]
-
-      // max bitrate according to AP
-      const MAX_BITRATE_M = 450
 
       const DEFAULTS = {
         connectionReconnect: true,
@@ -137,7 +129,7 @@ angular.module('MainApp')
         return ifList.pop()
       }
 
-      /**Runs a command in an Executor object. If an error occours after delay
+      /** Runs a command in an Executor object. If an error occours after delay
        * it will try to run the command again up to a maximum of maxTries.
        *
        * @param  {String} cmd      The command to be executed.
@@ -593,7 +585,6 @@ angular.module('MainApp')
       }
 
       $scope.test = function () {
-
         NetInfo.getRxTxStats($scope.selectedDevice, (err, receive, transmit, timestamp) => {
           if (err) {
             console.log(err)
@@ -676,29 +667,25 @@ angular.module('MainApp')
         }
 
         WatcherTracker.registerWatcher('antennaPosition', $scope,
-          (scope) => {
-            return scope.antennaPosition
-          }, (newValue, oldValue) => {
-            console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
-            if (newValue) {
-              // As we know that we are in a new position we check the bitrate.
-              // checkBitrate()
-              NetInfo.checkRxBitrate($scope.selectedDevice)
-                // timeout, delay, readings, filePath, callback
-              wifiReadingsV2(1500,
-                  $scope.configuration.readingDelay,
-                  $scope.configuration.numberOfReadings,
-                  afterWifiReadings
-                )
-                // wifiReadings(1500,
-                //   $scope.configuration.readingDelay,
-                //   $scope.configuration.numberOfReadings,
-                //   afterWifiReadings)
-            }
-          },
-          false,
-          false
-        )
+        scope => scope.antennaPosition,
+        (newValue, oldValue) => {
+          console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
+          if (newValue) {
+            // As we know that we are in a new position we check the bitrate.
+            NetInfo.checkRxBitrate($scope.selectedDevice)
+            // timeout, delay, readings, filePath, callback
+            wifiReadingsV2(1500,
+              $scope.configuration.readingDelay,
+              $scope.configuration.numberOfReadings,
+              afterWifiReadings)
+              // wifiReadings(1500,
+              //   $scope.configuration.readingDelay,
+              //   $scope.configuration.numberOfReadings,
+              //   afterWifiReadings)
+          }
+        },
+        false,
+        false)
 
         /* We restart the warcher in case needed. Watcher already registered
         won't be registered again. */
