@@ -52,7 +52,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
   function stopByPrefix (prefix) {
     watchList.forEach((watch, idx, arr) => {
-      if (watch.name.startsWith(prefix)) {
+      if (watch.watcherName.startsWith(prefix)) {
         watch.deregister()
       }
     })
@@ -60,7 +60,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
   function startByPrefix (prefix) {
     watchList.forEach((watch, idx, arr) => {
-      if (watch.name.startsWith(prefix)) {
+      if (watch.watcherName.startsWith(prefix)) {
         watch.register()
       }
     })
@@ -96,7 +96,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
     // We deregister all the watchers which wathcerName starts by name
     // and we store they idx
     watchList.forEach((watch, idx, arr) => {
-      if (regExp.test(watch.watherName)) {
+      if (regExp.test(watch.watcherName)) {
         idxList.push(idx)
         watch.deregister()
       }
