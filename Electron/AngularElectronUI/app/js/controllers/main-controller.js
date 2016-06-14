@@ -90,12 +90,12 @@ angular.module('MainApp')
           return !(iface.startsWith('lo') || iface.startsWith('en'))
         })
         let selected = false
+        let checkThis = false
         devices.forEach((device) => {
-          // We select the first avaliable device
-          let check = false
+          // We select the first avaliable device and we check it.
           if (!selected) {
-            check = true
             $scope.selectedDevice = device
+            checkThis = true
             selected = true
           }
 
@@ -110,6 +110,13 @@ angular.module('MainApp')
               })
             }
           }
+
+          // We check the first valid device found.
+          if (checkThis) {
+            deviceMenu.checked = true
+            checkThis = false
+          }
+
           selectDevice.submenu.push(deviceMenu)
         })
         let selectDeviceMenu = new MenuItem(selectDevice)
@@ -502,10 +509,9 @@ angular.module('MainApp')
 
         // Watch changes in positionWithStats -> save values to file.ç
         /* This watcher doesn't require deep check nor to be persistent */
-        WatcherTracker.registerWatcher('positionWithStats', $scope,
-          (scope) => {
-            return scope.positionWithStats
-          }, (newValue, oldValue) => {
+        WatcherTracker.registerWatcher('mainCtrl_positionWithStats', $scope,
+          scope => scope.positionWithStats,
+          (newValue, oldValue) => {
             console.log('positionWithStats: (new)', newValue, '(old)', oldValue)
             if (newValue) {
               newValue.appendFile($scope.fileName)
@@ -610,44 +616,52 @@ angular.module('MainApp')
         console.log('setting initial position')
         $scope.currentPosition.set(0, 0)
 
-        WatcherTracker.registerWatcher('currentPosition', $scope,
-          scope => scope.currentPosition,
-          (newValue, oldValue) => {
-            console.log('(mainCtrl) currentPosition changed: (old)', oldValue.toString(), '(new)', newValue.toString())
-            if (newValue) {
-              if (newValue.x === 0 && newValue.y === 0) {
-                resetAntennaPosition()
-              } else if (!angular.equals(newValue, oldValue)) {
-                console.log('They are different!')
-                console.log('newValue:', newValue.toString())
-                console.log('oldValue:', oldValue.toString())
-                if (newValue.x === oldValue.x) {
-                  console.log('moving Y')
-                  moveAntennaY(newValue.y, $scope.rows, 500)
-                } else if (newValue.y === oldValue.y) {
-                  console.log('moving X')
-                  moveAntennaX(newValue.x, $scope.columns, 500)
-                } else {
-                  console.log('moving XY')
-                  moveAntennaXY(newValue, $scope.rows, $scope.columns, 500)
+        // We check for the existence of the watcher.
+        let currentPositionWatcher = WatcherTracker.getWatcher('mainCtrl_currentPosition')
+        if (currentPositionWatcher) {
+          // If the wacther already exist we register it again.
+          currentPositionWatcher.register()
+        } else {
+          // If it doesn't exist, we create and register it.
+          WatcherTracker.registerWatcher('mainCtrl_currentPosition', $scope,
+            scope => scope.currentPosition,
+            (newValue, oldValue) => {
+              console.log('(mainCtrl) currentPosition changed: (old)', oldValue.toString(), '(new)', newValue.toString())
+              if (newValue) {
+                if (newValue.x === 0 && newValue.y === 0) {
+                  resetAntennaPosition()
+                } else if (!angular.equals(newValue, oldValue)) {
+                  console.log('They are different!')
+                  console.log('newValue:', newValue.toString())
+                  console.log('oldValue:', oldValue.toString())
+                  if (newValue.x === oldValue.x) {
+                    console.log('moving Y')
+                    moveAntennaY(newValue.y, $scope.rows, 500)
+                  } else if (newValue.y === oldValue.y) {
+                    console.log('moving X')
+                    moveAntennaX(newValue.x, $scope.columns, 500)
+                  } else {
+                    console.log('moving XY')
+                    moveAntennaXY(newValue, $scope.rows, $scope.columns, 500)
+                  }
                 }
+              } else {
+                // We reached the end of the cicle
+                console.log('The end.')
+                self.stop()
+                resetAntennaPosition(1000)
+                  // lets go to the best position.
+                  // TODO: Implement goint to the best position.
               }
-            } else {
-              // We reached the end of the cicle
-              console.log('The end.')
-              self.stop()
-              resetAntennaPosition(1000)
-                // lets go to the best position.
-                // TODO: Implement goint to the best position.
-            }
-          },
-          true,
-          false
-        )
-
+            },
+            true,
+            false
+          )
+        }
         // Watch changes in antennaPosition -> trigger wifi readings.
         /* Once Arduino tells us there is a new position ( -> change in
         antennaPosition) we do our readings*/
+
         let afterWifiReadings = function () {
           console.log('(afterReadings)')
           console.log('configuration mode:', $scope.configuration.mode)
@@ -666,30 +680,35 @@ angular.module('MainApp')
           }
         }
 
-        WatcherTracker.registerWatcher('antennaPosition', $scope,
-        scope => scope.antennaPosition,
-        (newValue, oldValue) => {
-          console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
-          if (newValue) {
-            // As we know that we are in a new position we check the bitrate.
-            NetInfo.checkRxBitrate($scope.selectedDevice)
-            // timeout, delay, readings, filePath, callback
-            wifiReadingsV2(1500,
-              $scope.configuration.readingDelay,
-              $scope.configuration.numberOfReadings,
-              afterWifiReadings)
-              // wifiReadings(1500,
-              //   $scope.configuration.readingDelay,
-              //   $scope.configuration.numberOfReadings,
-              //   afterWifiReadings)
-          }
-        },
-        false,
-        false)
-
-        /* We restart the warcher in case needed. Watcher already registered
-        won't be registered again. */
-        WatcherTracker.startWatchers()
+        /* In case this isn't the first run, we check for the existence of
+        a watcher with this name */
+        let antennaPositionWatcher = WatcherTracker.getWatcher('mainCtrl_antennaPosition')
+        if (antennaPositionWatcher) {
+          // If the watcher alreay exist, we start it again.
+          antennaPositionWatcher.register()
+        } else {
+          // If doesn't exist we crate it.
+          WatcherTracker.registerWatcher('mainCtrl_antennaPosition', $scope,
+          scope => scope.antennaPosition,
+          (newValue, oldValue) => {
+            console.log('Watching antennaPosition (old)', oldValue, '(new)', newValue, '.')
+            if (newValue) {
+              // As we know that we are in a new position we check the bitrate.
+              NetInfo.checkRxBitrate($scope.selectedDevice)
+              // timeout, delay, readings, filePath, callback
+              wifiReadingsV2(1500,
+                $scope.configuration.readingDelay,
+                $scope.configuration.numberOfReadings,
+                afterWifiReadings)
+                // wifiReadings(1500,
+                //   $scope.configuration.readingDelay,
+                //   $scope.configuration.numberOfReadings,
+                //   afterWifiReadings)
+            }
+          },
+          false,
+          false)
+        }
 
         switch ($scope.configuration.mode) {
           case 'auto':
@@ -715,12 +734,14 @@ angular.module('MainApp')
       }
 
       self.stop = function stop () {
-        // Stop curl executor
-        WatcherTracker.cleanWatchers()
         $scope.started = false
+        // Stop curl executor
         curlProcess.quit()
 
         // Deregister watchers.
+        // We only need to stop the watchers in main controller as the ones
+        // in canvas and chart controllers should still keep working.
+        WatcherTracker.stopByPrefix('mainCtrl')
       }
 
       init()

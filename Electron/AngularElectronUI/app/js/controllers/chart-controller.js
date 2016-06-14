@@ -126,7 +126,7 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
     let position = 0
 
     WatcherTracker.registerWatcher(
-      'chartWatcher',
+      'chartCtrl_netStats',
       $scope,
       scope => scope.netStats,
       (newValue, oldValue) => {

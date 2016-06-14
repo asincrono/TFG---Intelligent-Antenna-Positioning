@@ -1,7 +1,7 @@
 angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFactory() {
   'use strict'
   class Watch {
-    constructor(name, watcherFunc, persistent) {
+    constructor (name, watcherFunc, persistent) {
       this.watcherName = name
       this.watcherFunc = watcherFunc
       this.watcherDeregFunc = null
@@ -9,7 +9,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
       this.registered = false
     }
 
-    register() {
+    register () {
       if (!this.registered) {
         console.log(this.watcherName, 'registered.')
         this.watcherDeregFunc = this.watcherFunc()
@@ -17,7 +17,7 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
       }
     }
 
-    deregister() {
+    deregister () {
       if (this.registered) {
         console.log(this.watcherName, 'deregistered.')
         this.watcherDeregFunc()
@@ -28,8 +28,8 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
 
   let watchList = []
 
-  function registerWatcher(name, scope, toWatch, toDo, deepCheck, persistent) {
-    let watcherFunc = function() {
+  function registerWatcher (name, scope, toWatch, toDo, deepCheck, persistent) {
+    let watcherFunc = function () {
       return scope.$watch(toWatch, toDo, deepCheck)
     }
     let watch = new Watch(name, watcherFunc, persistent)
@@ -38,19 +38,35 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
     watchList.push(watch)
   }
 
-  function stopWatchers() {
+  function stopWatchers () {
     watchList.forEach((watch) => {
       watch.deregister()
     })
   }
 
-  function startWatchers() {
+  function startWatchers () {
     watchList.forEach((watch) => {
       watch.register()
     })
   }
 
-  function cleanWatchers() {
+  function stopByPrefix (prefix) {
+    watchList.forEach((watch, idx, arr) => {
+      if (watch.name.startsWith(prefix)) {
+        watch.deregister()
+      }
+    })
+  }
+
+  function startByPrefix (prefix) {
+    watchList.forEach((watch, idx, arr) => {
+      if (watch.name.startsWith(prefix)) {
+        watch.register()
+      }
+    })
+  }
+
+  function cleanWatchers () {
     watchList.forEach((watch) => {
       watch.deregister()
     })
@@ -59,22 +75,21 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
     })
   }
 
-  function remove(name) {
+  function remove (name) {
     let limit = watchList.length
 
-    for (let i = 0; i < length; i += 1) {
+    for (let i = 0; i < limit; i += 1) {
       if (watchList[i].watcherName === name) {
         let watcher = watchList.splice(i, 1)
-        wather.deregister()
+        watcher.deregister()
         return true
       }
     }
     return false
   }
 
-  function removeByPrefix(name) {
+  function removeByPrefix (name) {
     let limit = watchList.length
-    let count = 0
     let idxList = []
     let regExp = new RegExp(`^${name}`)
 
@@ -104,8 +119,28 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
     }
   }
 
+  function hasWatcher (name) {
+    let limit = watchList.length
+    for (let i = 0; i < limit; i += 1) {
+      if (watchList[i].name === name) {
+        return true
+      }
+    }
+    return false
+  }
 
-  function count() {
+  function getWatcher (name) {
+    let watcher = null
+    let limit = watchList.length
+    for (let i = 0; i < limit; i += 1) {
+      if (watchList[i].name === name) {
+        watcher = watchList[i]
+      }
+    }
+    return watcher
+  }
+
+  function count () {
     return watchList.length
   }
 
@@ -114,6 +149,12 @@ angular.module('MainApp').factory('WatcherTracker', function WatcherTrackerFacto
     cleanWatchers: cleanWatchers,
     startWatchers: startWatchers,
     stopWatchers: stopWatchers,
+    stopByPrefix: stopByPrefix,
+    startByPrefix: startByPrefix,
+    removeByName: remove,
+    removeByPrefix: removeByPrefix,
+    hasWatcher: hasWatcher,
+    getWatcher: getWatcher,
     count: count
   }
 })
