@@ -106,12 +106,12 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
           includeZero: true
         },
         y: {
-          min: 0,
-          max: 100
+          min: -100,
+          max: 0
         },
         y2: {
           min: 0,
-          max: -100
+          max: 50 // Never reached in optimal conditions.
         }
       },
       pan: {
