@@ -51,14 +51,6 @@ angular.module('MainApp')
         maxTries: MAX_TRIES
       }
 
-      const MSG_ARGS_TESTING = {
-        tolerance: 5,
-        baseSpeed: 190,
-        maxSpeed: 200,
-        pollDelay: 15,
-        maxTries: 50
-      }
-
       const MSG_ARGS_MOTOR_X = {
         tolerance: 5,
         baseSpeed: 175,
@@ -69,8 +61,8 @@ angular.module('MainApp')
 
       const MSG_ARGS_MOTOR_Y = {
         tolerance: 5,
-        baseSpeed: 250,
-        maxSpeed: 250,
+        baseSpeed: 175,
+        maxSpeed: 200,
         pollDelay: 15,
         maxTries: 50
       }
