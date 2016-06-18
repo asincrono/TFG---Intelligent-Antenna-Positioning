@@ -46,22 +46,6 @@ class Executor {
   }
 }
 
-serialport.list((err, portList) => {
-  if (err) {
-    console.log('Aquí también falla.')
-  } else {
-    console.log(portList)
-    if (portList) {
-      portList.forEach((port, idx, arr) => {
-        if (port.manufacturer) {
-          console.log(port.manufacturer)
-          console.log(process.version)
-        }
-      })
-    }
-  }
-})
-
 let myFunc = function () {
   let love = false
 
@@ -81,7 +65,60 @@ let myFunc = function () {
   }
 }
 
-let mf = myFunc()
-mf.showLove()
-mf.setLove()
-mf.showLove()
+function getXFromPos(position, rows, columns) {
+  if (rows < 0 || columns < 0) {
+    // throw new RangeError('Invalid parameter: rows and columns must bet positive')
+    throw new RangeError(`Invalid parameter: ${ rows < 0 ? 'rows' : 'columns'}${ rows < 0 && columns < 0 ? ' and colmuns ' : ' '}must bet positive`)
+  }
+
+  let maxVal = rows * columns
+  if (position >= maxVal) {
+    throw new RangeError(`Invalid position: position should be < ${maxVal}`)
+  }
+
+  let x
+
+  x = Math.trunc(position / columns)
+
+  return x
+}
+
+function getYFromPos (position, rows, columns) {
+  if (rows < 0 || columns < 0) {
+    throw new RangeError(`Invalid parameter: ${rows < 0 ? 'rows' : 'columns'}${rows < 0 && columns < 0 ? ' and colmuns ' : ' '}must bet positive`)
+  }
+
+
+  let maxVal = rows * columns
+
+  if (position >= maxVal) {
+    throw new RangeError(`Invalid position: position should be < ${maxVal}`)
+  }
+
+  let y
+  let row = Math.trunc(position / columns)
+  let rem = position % columns
+  let isEvenRow = row % 2 === 0
+  // In even rows y moves from left to right, in odd rows from right to left.
+  if (isEvenRow) {
+    y = rem
+  } else {
+    y = columns - rem - 1
+  }
+  return y
+}
+
+
+function outer() {
+  let y = 0
+  return setInterval(function () {
+    console.log(y)
+    y += 1
+  }, 1000)
+}
+
+let inter = outer()
+
+setTimeout(function () {
+  clearInterval(inter)
+}, 3500)

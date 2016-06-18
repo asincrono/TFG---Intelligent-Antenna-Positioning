@@ -8,8 +8,9 @@
     "gulp": "^3.9.1"
   },
   "dependencies": {
-    "electron-prebuilt": "1.1.2",
+    "electron-prebuilt": "^1.2.2",
     "material-design-icons": "^2.2.3",
+    "n3-charts": "^2.0.27",
     "serialport": "^4.0.0-beta3",
     "usb-detection": "^1.4.0"
   },

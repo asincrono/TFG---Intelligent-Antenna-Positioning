@@ -17,7 +17,7 @@ angular.module('MainApp')
     const {execFile} = require('child_process')
 
     class NetStats {
-      constructor(level, noise, rx, tx) {
+      constructor (level, noise, rx, tx) {
         this.level = level
         this.noise = noise
         this.bitrate = {
@@ -27,7 +27,7 @@ angular.module('MainApp')
         this.timeStamp = Date.now()
       }
 
-      updateStats(stats) {
+      updateStats (stats) {
         this.level = stats.level
         this.noise = stats.noise
         this.bitrate = stats.bitrate
@@ -36,19 +36,19 @@ angular.module('MainApp')
     }
 
     class RxStamp {
-      constructor(bytes, timestamp) {
+      constructor (bytes, timestamp) {
         this.bytes = bytes
         this.timestamp = timestamp
       }
 
-      getBitrate(rxStamp) {
+      getBitrate (rxStamp) {
         let byteDiff = Math.abs(this.bytes - rxStamp.bytes)
         // Time should be in seconds.
         let timeDiff = Math.abs(this.timestamp - rxStamp.timestamp) / 1000
         return Math.trunc(byteDiff / timeDiff)
       }
 
-      update(bytes, timestamp) {
+      update (bytes, timestamp) {
         this.bytes = bytes
         this.timestamp = timestamp
       }
@@ -57,7 +57,7 @@ angular.module('MainApp')
     let rxStamp = null
 
     // Since the last invocation
-    function checkRxBitrate(device, callback) {
+    function checkRxBitrate (device, callback) {
       getRx(device, (err, bytes, timestamp) => {
         if (err) {
           console.log(err)
@@ -70,7 +70,7 @@ angular.module('MainApp')
           // First invocation will return always null.
           let bitrate = null
           if (rxStamp) {
-            let bitrate = rxStamp.getBitrate(newRxStamp)
+            bitrate = rxStamp.getBitrate(newRxStamp)
             rxStamp.update(bytes, timestamp)
           } else {
             rxStamp = new RxStamp(bytes, timestamp)
@@ -82,7 +82,7 @@ angular.module('MainApp')
       })
     }
 
-    function parseLinux(device, data) {
+    function parseLinux (device, data) {
       let lines = data.split('\n')
 
       let line = lines.filter((line) => {
@@ -94,21 +94,21 @@ angular.module('MainApp')
         if (values[0] === '') {
           values.splice(0, 1)
         }
-        let level = parseInt(rTrim(values[3], '.'))
-        let noise = parseInt(rTrim(values[4], '.'))
+        let level = parseInt(rTrim(values[3], '.'), 10)
+        let noise = parseInt(rTrim(values[4], '.'), 10)
         return new NetStats(level, noise)
       } else {
         throw new Error(`Device "${device}" not found.`)
       }
     }
 
-    function parseDarwin(data) {
-      let level = parseInt(data.match(/agrCtlRSSI: (\-\d+)/)[1])
-      let noise = parseInt(data.match(/agrCtlNoise: (\-\d+)/)[1])
+    function parseDarwin (data) {
+      let level = parseInt(data.match(/agrCtlRSSI: (\-\d+)/)[1], 10)
+      let noise = parseInt(data.match(/agrCtlNoise: (\-\d+)/)[1], 10)
       return new NetStats(level, noise)
     }
 
-    function getNetStats(device, callback) {
+    function getNetStats (device, callback) {
       switch (os.platform()) {
         case 'darwin':
           {
@@ -135,7 +135,7 @@ angular.module('MainApp')
       }
     }
 
-    function listIfaces() {
+    function listIfaces () {
       let ifaces = os.networkInterfaces()
       let ifNames = []
       for (let ifName in ifaces) {
@@ -144,7 +144,7 @@ angular.module('MainApp')
       return ifNames
     }
 
-    function getRxTxStats(device, callback) {
+    function getRxTxStats (device, callback) {
       execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
         let timestap = Date.now()
         if (err) {
@@ -163,17 +163,17 @@ angular.module('MainApp')
 
             console.log('values:', values)
             let receive = {
-              bytes: parseInt(values[1]),
-              packets: parseInt(values[2]),
-              errs: parseInt(values[3]),
-              drop: parseInt(values[4])
+              bytes: parseInt(values[1], 10),
+              packets: parseInt(values[2], 10),
+              errs: parseInt(values[3], 10),
+              drop: parseInt(values[4], 10)
             }
 
             let transmit = {
-              bytes: parseInt(values[9]),
-              packets: parseInt(values[10]),
-              errs: parseInt(values[11]),
-              drop: parseInt(values[12])
+              bytes: parseInt(values[9], 10),
+              packets: parseInt(values[10], 10),
+              errs: parseInt(values[11], 10),
+              drop: parseInt(values[12], 10)
             }
             callback(null, receive, transmit, timestap)
           } else {
@@ -187,7 +187,7 @@ angular.module('MainApp')
     Callback will recive err, bytes readed by the device and the timestap for that
     read.
     */
-    function getRx(device, callback) {
+    function getRx (device, callback) {
       execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
         let timestap = Date.now()
         if (err) {
@@ -203,7 +203,7 @@ angular.module('MainApp')
             if (values[0] === '') {
               values.splice(0, 1)
             }
-            let rx = parseInt(values[1])
+            let rx = parseInt(values[1], 10)
             callback(null, rx, timestap)
           } else {
             callback(new Error(`Device "${device}" not found.`))
@@ -212,7 +212,7 @@ angular.module('MainApp')
       })
     }
 
-    function getTx(device, callback) {
+    function getTx (device, callback) {
       execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
         let timestap = Date.now()
         if (err) {
@@ -228,7 +228,7 @@ angular.module('MainApp')
             if (values[0] === '') {
               values.splice(0, 1)
             }
-            let tx = parseInt(values[9])
+            let tx = parseInt(values[9], 10)
             callback(null, tx, timestap)
           } else {
             callback(new Error(`Device "${device}" not found.`))
