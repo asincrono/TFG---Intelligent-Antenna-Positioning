@@ -102,7 +102,7 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
           ticks: getTicks($scope.rows, $scope.columns),
           tickFormat: tickFormatFunc,
           min: 0,
-          max: 5,
+          max: 15,
           includeZero: true
         },
         y: {
