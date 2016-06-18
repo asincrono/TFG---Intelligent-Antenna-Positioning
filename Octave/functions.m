@@ -1,0 +1,1 @@
+# Script File.# This is not a function file1;# Function definitionsfunction filtedredData = filterColMinVal(data, col, minVal)   pos = 1  for i 1:rows(data)    if (data(1, col) >= minValue)      filteredData(pos) = data(i, :)      pos += 1    endif  endforendfunction

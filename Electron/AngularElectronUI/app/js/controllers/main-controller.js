@@ -506,6 +506,7 @@ angular.module('MainApp')
           (newValue, oldValue) => {
             console.log('positionWithStats: (new)', newValue, '(old)', oldValue)
             if (newValue) {
+              // I must save time, position, level and bitrate
               newValue.appendFile($scope.fileName)
             }
           },

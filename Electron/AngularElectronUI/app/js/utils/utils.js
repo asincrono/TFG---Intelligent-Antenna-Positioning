@@ -5,22 +5,22 @@ const fs = require('fs')
 const {execFile} = require('child_process')
 
 class Position {
-  constructor(x, y) {
-    this.x = x ? x : 0
-    this.y = y ? y : 0
+  constructor (x, y) {
+    this.x = x || 0
+    this.y = y || 0
   }
 
-  set(x, y) {
+  set (x, y) {
     this.x = x
     this.y = y
   }
 
-  setFromPosition(position) {
+  setFromPosition (position) {
     this.x = position.x
     this.y = position.y
   }
 
-  compare(position) {
+  compare (position) {
     return (this.x === position.x && this.y === position.y)
   }
 
@@ -45,7 +45,7 @@ class Position {
    * @param  {[type]}   cols [description]
    * @return {Function}      [description]
    */
-  next(rows, cols) {
+  next (rows, cols) {
     if (rows === undefined || cols === undefined) {
       throw new Error('"rows" and "cols" must be numbers')
     }
@@ -78,7 +78,7 @@ class Position {
     return new Position(row, col)
   }
 
-  setToNext(rows, cols) {
+  setToNext (rows, cols) {
     if (rows === undefined || cols === undefined) {
       return false
     }
@@ -109,55 +109,55 @@ class Position {
     return true
   }
 
-  setCoords(x, y) {
+  setCoords (x, y) {
     this.x = x
     this.y = y
   }
 
-  random(xMin, xMax, yMin, yMax) {
-    xMin = xMin ? xMin : 0
-    xMax = xMax ? xMax : 100
-    yMin = yMin ? yMin : 0
-    yMax = yMax ? yMax : 100
+  random (xMin, xMax, yMin, yMax) {
+    xMin = xMin || 0
+    xMax = xMax || 100
+    yMin = yMin || 0
+    yMax = yMax || 100
     return new Position(rand(xMin, xMax), rand(yMin, yMax))
   }
 
-  toString() {
+  toString () {
     return `(${this.x}, ${this.y})`
   }
 }
 
 /* Antenna position is a position with stats */
 class AntennaPosition extends Position {
-  constructor(x, y, stats) {
+  constructor (x, y, stats) {
     super(x, y)
     this.stats = stats
   }
 
-  setStats(stats) {
+  setStats (stats) {
     this.stats.level = stats.level
     this.stats.noise = stats.noise
   }
 
-  toString() {
+  toString () {
     return `${super.toString()}: ${this.stats.toString()}`
   }
 
-  toDataRow() {
+  toDataRow () {
     return [super.toString(), this.stats.singal, this.stats.noise]
   }
 
-  getPosition() {
+  getPosition () {
     return new Position(this.x, this.y)
   }
 
-  clone() {
+  clone () {
     return new AntennaPosition(this.x, this.y, this.stats.level, this.stats.noise)
   }
 
-  appendFile(file) {
-    let data = `${new Date(this.stats.timeStamp).toLocaleString()}, ${this.x}, ${this.y}, ${this.stats.level}, ${this.stats.noise}\n`
-    fs.appendFile(file, data, (err) => {
+  appendFile (file) {
+    let data = `${new Date(this.stats.timeStamp).toLocaleString()}, ${this.x}, ${this.y}, ${this.stats.level}, ${this.stats.bitrate.rx}\n`
+    fs.appendFile(file, data, 'utf8', (err) => {
       if (err) {
         console.log('Error writing antenna position to file"', file, '"', err)
       }
@@ -165,44 +165,44 @@ class AntennaPosition extends Position {
   }
 }
 
-function rTrim(str, char) {
+function rTrim (str, char) {
   let re = new RegExp(`[${char}]+$`)
   return str.replace(re, '')
 }
 
-function lTrim(str, char) {
+function lTrim (str, char) {
   let re = new RegExp(`^[${char}]+`)
   return str.replace(re, '')
 }
 
-function trimParenthesis(str) {
+function trimParenthesis (str) {
   return str.replace(/[\(\)]/g, '')
 }
 
-function leftPad(value, times, padChar) {
+function leftPad (value, times, padChar) {
   return (padChar.repeat(times) + value).slice(-times)
 }
 
-function rightPad(value, times, padChar) {
+function rightPad (value, times, padChar) {
   return (String(value) + padChar.repeat(times)).slice(0, times)
 }
 
-function rand(min, max) {
-  min = min ? min : 0
-  max = max ? max : 10
+function rand (min, max) {
+  min = min || 0
+  max = max || 10
 
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
 class Executor {
-  constructor(cmd, args, cb) {
+  constructor (cmd, args, cb) {
     this.cmd = cmd
     this.args = args
     this.cb = cb
     this.child = null
   }
 
-  callback(err, stdout, stderr) {
+  callback (err, stdout, stderr) {
     if (err) {
       if (this.cb) {
         this.cb(err)
@@ -210,30 +210,30 @@ class Executor {
         throw err
       }
     } else if (stdout) {
-        console.log(stdout)
-        if (this.cb) {
-          this.cb(null, stdout, stderr)
-        }
-        this.run()
-      } else if (stderr) {
-        this.cb(null, null, stderr)
+      console.log(stdout)
+      if (this.cb) {
+        this.cb(null, stdout, stderr)
       }
+      this.run()
+    } else if (stderr) {
+      this.cb(null, null, stderr)
+    }
   }
 
-  run() {
+  run () {
     this.child = execFile(this.cmd, this.args, this.callback.bind(this))
   }
 
-  quit() {
+  quit () {
     this.child.kill('SIGQUIT')
   }
 
-  kill() {
+  kill () {
     this.child.kill('SIGKILL')
   }
 }
 
-function cmdOnExecutorRunner(cmd, args, maxTries, delay) {
+function cmdOnExecutorRunner (cmd, args, maxTries, delay) {
   let tryCount = 0
   let end = false
     // Initiate the curl command data transmission
@@ -268,11 +268,11 @@ function cmdOnExecutorRunner(cmd, args, maxTries, delay) {
     }
   })
 
-  function run() {
+  function run () {
     executor.run()
   }
 
-  function stop() {
+  function stop () {
     end = true
     executor.stop()
   }
@@ -282,7 +282,6 @@ function cmdOnExecutorRunner(cmd, args, maxTries, delay) {
     stop: stop
   }
 }
-
 
 exports.leftPad = leftPad
 exports.rightPad = rightPad
