@@ -111,7 +111,7 @@ angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTrack
         },
         y2: {
           min: 0,
-          max: 50 // Never reached in optimal conditions.
+          max: 100 // Never reached in optimal conditions.
         }
       },
       pan: {

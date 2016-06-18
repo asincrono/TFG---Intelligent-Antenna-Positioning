@@ -62,7 +62,7 @@ angular.module('MainApp')
       const MSG_ARGS_MOTOR_Y = {
         tolerance: 5,
         baseSpeed: 175,
-        maxSpeed: 200,
+        maxSpeed: 225,
         pollDelay: 15,
         maxTries: 50
       }
