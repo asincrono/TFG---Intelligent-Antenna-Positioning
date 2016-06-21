@@ -410,12 +410,10 @@ angular.module('MainApp')
 
         let afterSuccess = function () {
           let netStats = calcMeanNetStats(netStatsList)
-          NetInfo.checkRxBitrate($scope.selectedDevice,
+          NetInfo.checkRx($scope.selectedDevice,
             (err, bitrate) => {
               if (err) throw err
-              let bps = bitrate * 8
-
-              netStats.bitrate.rx = conversion.bps2Mbps(bps)
+              netStats.bitrate.rx = bitrate.getMbps().toFixed(3)
                 // We update netStats and save antenaPosition to file.
                 // (antennaPosition save herself on change through watcher)
               $scope.netStats = netStats

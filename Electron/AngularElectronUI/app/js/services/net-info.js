@@ -2,6 +2,7 @@ angular.module('MainApp')
   .factory('NetInfo', function NetInfoFactory() {
     const os = require('os')
     const fs = require('fs')
+    const Bitrate = require('./js/utils/bitrate')
     const {rTrim, lineToValues} = require('./js/utils/utils.js')
     const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
     framework/Versions/Current/Resources/airport -I'
@@ -45,7 +46,7 @@ angular.module('MainApp')
         let byteDiff = Math.abs(this.bytes - rxStamp.bytes)
         // Time should be in seconds.
         let timeDiff = Math.abs(this.timestamp - rxStamp.timestamp) / 1000
-        return Math.trunc(byteDiff / timeDiff)
+        return Bitrate.fromBps(byteDiff / timeDiff)
       }
 
       update (bytes, timestamp) {

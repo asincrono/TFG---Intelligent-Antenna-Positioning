@@ -242,6 +242,11 @@ function lineToValues (line) {
   return line.split(/\s+/).filter(value => value.length > 0)
 }
 
+function truncDec (number, decimals) {
+  let shift = Math.pow(10, decimals)
+  return Math.trunc(number * shift) / (shift)
+}
+
 exports.leftPad = leftPad
 exports.rightPad = rightPad
 exports.lTrim = lTrim
@@ -252,4 +257,5 @@ exports.Position = Position
 exports.AntennaPosition = AntennaPosition
 exports.lineToValues = lineToValues
 exports.cleanLine = cleanLine
+exports.truncDec = truncDec
 exports.rand = rand
