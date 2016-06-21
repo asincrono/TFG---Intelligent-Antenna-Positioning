@@ -1,18 +1,18 @@
 angular.module('MainApp')
   .factory('NetInfo', function NetInfoFactory() {
-    const {rTrim} = require('./js/utils/utils.js')
+    const os = require('os')
+    const fs = require('fs')
+    const {rTrim, lineToValues} = require('./js/utils/utils.js')
     const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
     framework/Versions/Current/Resources/airport -I'
 
     const DARWIN_NETSTAT_CMD = 'netstat'
-    const LINUX_CAT_STATS_ARGS = ['/proc/net/wireless']
-    const LINUX_CAT_CMD = 'cat'
-    const LINUX_CAT_RXTX_ARGS = ['/proc/net/dev']
-    const LINUX_PROC_PATH = ''
-      // const LINUX_NMCLI_CMD = 'nmcli'
-      // const LINUX_NMCLI_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
-    const WINDOWS_NETSH_CMD = ''
-    const WINDOWS_NETSH_ARGS = ''
+    const PROC_NET_DEV = '/proc/net/'
+    const PROC_NET_WIRELESS = '/proc/net/wireless'
+    // const LINUX_NMCLI_CMD = 'nmcli'
+    // const LINUX_NMCLI_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
+    // const WINDOWS_NETSH_CMD = ''
+    // const WINDOWS_NETSH_ARGS = ''
 
     const {execFile} = require('child_process')
 
@@ -90,10 +90,7 @@ angular.module('MainApp')
       })[0]
 
       if (line) {
-        let values = line.split(/\s+/)
-        if (values[0] === '') {
-          values.splice(0, 1)
-        }
+        let values = lineToValues(line)
         let level = parseInt(rTrim(values[3], '.'), 10)
         let noise = parseInt(rTrim(values[4], '.'), 10)
         return new NetStats(level, noise)
@@ -123,11 +120,11 @@ angular.module('MainApp')
           break
         case 'linux':
           {
-            execFile(LINUX_CAT_CMD, LINUX_CAT_STATS_ARGS, (err, stdout, stderr) => {
+            fs.readFile(PROC_NET_WIRELESS, 'utf8', (err, data) => {
               if (err) {
-                console.log(err, stderr)
+                console.error(err)
               } else {
-                callback(parseLinux(device, stdout))
+                callback(parseLinux(device, data))
               }
             })
           }
@@ -145,23 +142,21 @@ angular.module('MainApp')
     }
 
     function getRxTxStats (device, callback) {
-      execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
-        let timestap = Date.now()
+      fs.readFile(PROC_NET_DEV, 'utf8', (err, data) => {
+        let timestamp = Date.now()
         if (err) {
           callback(err)
         } else {
-          let lines = stdout.split('\n')
+          let lines = data.split('\n')
           let line = lines.filter((line) => {
             return line.includes(device)
           })[0]
 
-          if (line) {
-            let values = line.split(/\s+/)
-            if (values[0] === '') {
-              values.splice(0, 1)
-            }
+          if (!line) {
+            callback(new Error(`Device "${device}" not found.`))
+          } else {
+            let values = lineToValues(line)
 
-            console.log('values:', values)
             let receive = {
               bytes: parseInt(values[1], 10),
               packets: parseInt(values[2], 10),
@@ -175,9 +170,8 @@ angular.module('MainApp')
               errs: parseInt(values[11], 10),
               drop: parseInt(values[12], 10)
             }
-            callback(null, receive, transmit, timestap)
-          } else {
-            callback(new Error(`Device "${device}" not found.`))
+
+            callback(null, receive, transmit, timestamp)
           }
         }
       })
@@ -188,50 +182,40 @@ angular.module('MainApp')
     read.
     */
     function getRx (device, callback) {
-      execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
-        let timestap = Date.now()
+      fs.readFile(PROC_NET_DEV, 'utf8', (err, data) => {
+        let timestamp = Date.now()
         if (err) {
           callback(err)
         } else {
-          let lines = stdout.split('\n')
-          let line = lines.filter((line) => {
-            return line.includes(device)
-          })[0]
-
+          let lines = data.split('\n')
+          let line = lines.filter(line => line.includes(device))[0]
           if (line) {
-            let values = line.split(/\s+/)
-            if (values[0] === '') {
-              values.splice(0, 1)
-            }
+            let values = lineToValues(line)
+
             let rx = parseInt(values[1], 10)
-            callback(null, rx, timestap)
+            callback(null, rx, timestamp)
           } else {
-            callback(new Error(`Device "${device}" not found.`))
+            callback(new Error('Device "${device}" not found.'))
           }
         }
       })
     }
 
     function getTx (device, callback) {
-      execFile(LINUX_CAT_CMD, LINUX_CAT_RXTX_ARGS, (err, stdout, stderr) => {
-        let timestap = Date.now()
+      fs.readFile(PROC_NET_DEV, 'utf8', (err, data) => {
+        let timestamp = Date.now()
         if (err) {
           callback(err)
         } else {
-          let lines = stdout.split('\n')
-          let line = lines.filter((line) => {
-            return line.includes(device)
-          })[0]
-
+          let lines = data.split('\n')
+          let line = lines.filter(line => line.includes(device))[0]
           if (line) {
-            let values = line.split(/\s+/)
-            if (values[0] === '') {
-              values.splice(0, 1)
-            }
-            let tx = parseInt(values[9], 10)
-            callback(null, tx, timestap)
+            let values = lineToValues(line)
+
+            let rx = parseInt(values[9], 10)
+            callback(null, rx, timestamp)
           } else {
-            callback(new Error(`Device "${device}" not found.`))
+            callback(new Error('Device "${device}" not found.'))
           }
         }
       })
