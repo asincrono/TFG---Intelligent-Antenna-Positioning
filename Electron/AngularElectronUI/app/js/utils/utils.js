@@ -4,6 +4,39 @@ const fs = require('fs')
 
 const {execFile} = require('child_process')
 
+class Matrix2D {
+  constructor (x, y) {
+    this.x = x
+    this.y = y
+    this.data = new Array(x)
+    for (let i = 0; i < y; i += 1) {
+      this.data[i] = new Array(y)
+    }
+    this.default = null
+  }
+
+  get (x, y) {
+    if (this.data[x][y]) {
+      return this.data[x][y]
+    }
+    return this.default
+  }
+
+  set (x, y, value) {
+    if (x >= this.x) {
+      throw new RangeError(`The x coordinate was ${x}, the maximum valid value is ${this.x}`)
+    }
+    if (y >= this.y) {
+      throw new RangeError(`The x coordinate was ${x}, the maximum valid value is ${this.x}`)
+    }
+    this.data[x][y] = value
+  }
+
+  setDefault (value) {
+    this.default = value
+  }
+}
+
 class Position {
   constructor (x, y) {
     this.x = x || 0
@@ -247,13 +280,14 @@ function truncDec (number, decimals) {
   return Math.trunc(number * shift) / (shift)
 }
 
+exports.Matrix2D = Matrix2D
+exports.Executor = Executor
+exports.Position = Position
 exports.leftPad = leftPad
 exports.rightPad = rightPad
 exports.lTrim = lTrim
 exports.rTrim = rTrim
 exports.trimParenthesis = trimParenthesis
-exports.Executor = Executor
-exports.Position = Position
 exports.AntennaPosition = AntennaPosition
 exports.lineToValues = lineToValues
 exports.cleanLine = cleanLine

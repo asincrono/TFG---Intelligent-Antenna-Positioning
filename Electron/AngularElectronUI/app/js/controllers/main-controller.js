@@ -1,3 +1,4 @@
+/*global angular app MenuItem Menu appMenu */
 angular.module('MainApp')
   .controller('MainController', ['$scope', '$timeout', '$interval', 'NetInfo', 'ArduinoComm', 'WatcherTracker',
     function ($scope, $timeout, $interval, NetInfo, ArduinoComm, WatcherTracker) {
@@ -43,6 +44,13 @@ angular.module('MainApp')
         motorPollDelay: 15,
         motorMaxTries: 100
       }
+
+      const MOTOR_X_SPEED_MATRIX = new utils.Matrix2D(DEFAULTS.rows, DEFAULTS.columns)
+      MOTOR_X_SPEED_MATRIX.setDefault(215)
+
+      const MOTOR_Y_SPEED_MATRIX = new utils.Matrix2D(DEFAULTS.rows, DEFAULTS.columns)
+      MOTOR_Y_SPEED_MATRIX.setDefault(215)
+      MOTOR_Y_SPEED_MATRIX.set(4, 4, 256)
 
       const MSG_ARGS = {
         tolerance: TOLERANCE,
@@ -263,6 +271,7 @@ angular.module('MainApp')
 
       function moveAntennaX (pos, steps, timeout) {
         // console.log('moving X')
+        MSG_ARGS_MOTOR_X.maxSpeed = MOTOR_X_SPEED_MATRIX.get(pos.x, pos.y)
         let msg = genMMsg(MOTOR_X_CODE, pos, steps, MSG_ARGS_MOTOR_X)
         // console.log('moving x msg:', msg)
         if (timeout) {
@@ -276,6 +285,7 @@ angular.module('MainApp')
 
       function moveAntennaY (pos, steps, timeout) {
         // console.log('moving Y')
+        MSG_ARGS_MOTOR_Y.maxSpeed = MOTOR_Y_SPEED_MATRIX.get(pos.x, pos.y)
         let msg = genMMsg(MOTOR_Y_CODE, pos, steps, MSG_ARGS_MOTOR_Y)
         // console.log('moving y msg:', msg)
         if (timeout) {
