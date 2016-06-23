@@ -420,7 +420,7 @@ angular.module('MainApp')
 
         let afterSuccess = function () {
           let netStats = calcMeanNetStats(netStatsList)
-          NetInfo.checkRx($scope.selectedDevice,
+          NetInfo.checkRxBitrate($scope.selectedDevice,
             (err, bitrate) => {
               if (err) throw err
               netStats.bitrate.rx = bitrate.getMbps().toFixed(3)
