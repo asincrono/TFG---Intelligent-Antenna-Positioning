@@ -1,14 +1,14 @@
+/* global angular */
 angular.module('MainApp')
-  .factory('NetInfo', function NetInfoFactory() {
+  .factory('NetInfo', function NetInfoFactory () {
     const os = require('os')
     const fs = require('fs')
     const Bitrate = require('./js/utils/bitrate')
     const {rTrim, lineToValues} = require('./js/utils/utils.js')
-    const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.\
-    framework/Versions/Current/Resources/airport -I'
+    const DARWIN_AIRPORT_CMD = '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I'
 
-    const DARWIN_NETSTAT_CMD = 'netstat'
-    const PROC_NET_DEV = '/proc/net/'
+    // const DARWIN_NETSTAT_CMD = 'netstat'
+    const PROC_NET_DEV = '/proc/net/dev'
     const PROC_NET_WIRELESS = '/proc/net/wireless'
     // const LINUX_NMCLI_CMD = 'nmcli'
     // const LINUX_NMCLI_DEV_ARGS = ['-f', 'DEVICE','con', 'show', '-a']
