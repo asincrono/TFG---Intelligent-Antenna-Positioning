@@ -1,3 +1,4 @@
+/* global angular */
 angular.module('MainApp').controller('ChartController', ['$scope', 'WatcherTracker', function ($scope, WatcherTracker) {
   let self = this
 

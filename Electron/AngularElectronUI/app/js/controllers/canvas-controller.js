@@ -1,3 +1,4 @@
+/* global angular Path2D */
 angular.module('MainApp').controller('CanvasController', ['$scope', 'WatcherTracker', function ($scope, WatcherTracker) {
   'use strict'
 

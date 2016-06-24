@@ -6,8 +6,9 @@ const {execFile} = require('child_process')
 
 class Matrix2D {
   constructor (x, y) {
-    this.x = x
-    this.y = y
+    this.rows = x
+    this.columns = y
+    this.length = x + y
     this.data = new Array(x)
     for (let i = 0; i < y; i += 1) {
       this.data[i] = new Array(y)
@@ -23,17 +24,55 @@ class Matrix2D {
   }
 
   set (x, y, value) {
-    if (x >= this.x) {
-      throw new RangeError(`The x coordinate was ${x}, the maximum valid value is ${this.x}`)
+    if (x >= this.rows) {
+      let msg = `The x coordinate was ${x}, the maximum valid value is ${this.rows}`
+      throw new RangeError(msg)
     }
-    if (y >= this.y) {
-      throw new RangeError(`The x coordinate was ${x}, the maximum valid value is ${this.x}`)
+    if (y >= this.columns) {
+      let msg = `The x coordinate was ${y}, the maximum valid value is ${this.columns}`
+      throw new RangeError(msg)
     }
     this.data[x][y] = value
   }
 
   setDefault (value) {
     this.default = value
+  }
+
+  getMax () {
+    if (this.length > 0) {
+      let max = this.data[0][0] || this.default
+      let value
+      for (let i = 0; i < this.rows; i += 1) {
+        for (let j = 1; j < this.columns; j += 1) {
+          value = this.data[i][j] || this.default
+          max = max >= value ? max : value
+        }
+      }
+      return max
+    } else {
+      return null
+    }
+  }
+
+  toString () {
+    if (this.length > 0) {
+      let mat = ''
+      let line
+      let value
+      for (let i = 0; i < this.rows; i += 1) {
+        line = '|'
+        for (let j = 0; j < this.columns; j += 1) {
+          value = (this.data[i][j] || this.default)
+          line += ' ' + value + ' '
+        }
+        line += '|\n'
+        mat += line
+      }
+      return mat
+    } else {
+      return `| |`
+    }
   }
 }
 

@@ -285,6 +285,8 @@ angular.module('MainApp')
 
       function moveAntennaY (pos, steps, timeout) {
         // console.log('moving Y')
+        console.log('msg args motor y:', MSG_ARGS_MOTOR_Y)
+        console.log('motor y speed matrix:', MOTOR_Y_SPEED_MATRIX.toString())
         MSG_ARGS_MOTOR_Y.maxSpeed = MOTOR_Y_SPEED_MATRIX.get(pos.x, pos.y)
         let msg = genMMsg(MOTOR_Y_CODE, pos, steps, MSG_ARGS_MOTOR_Y)
         // console.log('moving y msg:', msg)
