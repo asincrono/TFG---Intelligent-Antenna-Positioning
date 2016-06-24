@@ -272,7 +272,7 @@ angular.module('MainApp')
       function moveAntennaX (pos, steps, timeout) {
         // console.log('moving X')
         MSG_ARGS_MOTOR_X.maxSpeed = MOTOR_X_SPEED_MATRIX.get(pos.x, pos.y)
-        let msg = genMMsg(MOTOR_X_CODE, pos, steps, MSG_ARGS_MOTOR_X)
+        let msg = genMMsg(MOTOR_X_CODE, pos.x, steps, MSG_ARGS_MOTOR_X)
         // console.log('moving x msg:', msg)
         if (timeout) {
           $timeout(function () {
@@ -287,8 +287,10 @@ angular.module('MainApp')
         // console.log('moving Y')
         console.log('msg args motor y:', MSG_ARGS_MOTOR_Y)
         console.log('motor y speed matrix:', MOTOR_Y_SPEED_MATRIX.toString())
+        console.log(`pos: ${pos}, x: ${pos.x} y: ${pos.y}`)
+
         MSG_ARGS_MOTOR_Y.maxSpeed = MOTOR_Y_SPEED_MATRIX.get(pos.x, pos.y)
-        let msg = genMMsg(MOTOR_Y_CODE, pos, steps, MSG_ARGS_MOTOR_Y)
+        let msg = genMMsg(MOTOR_Y_CODE, pos.y, steps, MSG_ARGS_MOTOR_Y)
         // console.log('moving y msg:', msg)
         if (timeout) {
           $timeout(function () {
@@ -639,10 +641,10 @@ angular.module('MainApp')
                   console.log('oldValue:', oldValue.toString())
                   if (newValue.x === oldValue.x) {
                     console.log('moving Y')
-                    moveAntennaY(newValue.y, $scope.rows, 500)
+                    moveAntennaY(newValue, $scope.rows, 500)
                   } else if (newValue.y === oldValue.y) {
                     console.log('moving X')
-                    moveAntennaX(newValue.x, $scope.columns, 500)
+                    moveAntennaX(newValue, $scope.columns, 500)
                   } else {
                     console.log('moving XY')
                     moveAntennaXY(newValue, $scope.rows, $scope.columns, 500)

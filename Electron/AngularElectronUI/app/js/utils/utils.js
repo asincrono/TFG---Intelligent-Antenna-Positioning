@@ -17,10 +17,7 @@ class Matrix2D {
   }
 
   get (x, y) {
-    if (this.data[x][y]) {
-      return this.data[x][y]
-    }
-    return this.default
+    return this.data[x][y] || this.default
   }
 
   set (x, y, value) {
@@ -318,6 +315,25 @@ function truncDec (number, decimals) {
   let shift = Math.pow(10, decimals)
   return Math.trunc(number * shift) / (shift)
 }
+
+function test () {
+  let m = new Matrix2D(5, 5)
+  console.log('m(0, 0)', m.get(0, 0))
+  for (let i = 0; i < m.rows / 2; i += 1) {
+    for (let j = 0; j < m.columns / 2; j += 1) {
+      m.set(i, j, Math.random() * 10)
+    }
+  }
+  m.setDefault(100)
+
+  for (let i = 0; i < m.rows; i += 1) {
+    for (let j = 0; j < m.columns; j += 1) {
+      console.log(`m(${i}, ${j}) = ${m.get(i, j)}`)
+    }
+  }
+}
+
+test()
 
 exports.Matrix2D = Matrix2D
 exports.Executor = Executor
