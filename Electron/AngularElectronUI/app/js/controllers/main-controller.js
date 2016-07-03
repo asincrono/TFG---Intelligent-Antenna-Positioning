@@ -701,7 +701,7 @@ angular.module('MainApp')
               // As we know that we are in a new position we check the bitrate.
               NetInfo.checkRxBitrate($scope.selectedDevice)
               // timeout, delay, readings, filePath, callback
-              wifiReadingsV2(1500,
+              wifiReadingsV2(2500,
                 $scope.configuration.readingDelay,
                 $scope.configuration.numberOfReadings,
                 afterWifiReadings)

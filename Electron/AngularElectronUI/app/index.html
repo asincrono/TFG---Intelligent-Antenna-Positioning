@@ -59,11 +59,11 @@
           </md-input-container>
           <md-input-container flex>
             <label>WiFi readings</label>
-            <input name="readings" flex="50" type="number" min="1" max="200" ng-model="configuration.numberOfReadings" placeholder="5">
+            <input name="readings" flex="50" type="number" min="1" max="300" ng-model="configuration.numberOfReadings" placeholder="5">
             <md-tooltip md-delay="1000">Number of readings for each position</md-tooltip>
             <div ng-messages="configForm.readings.$error" ng-show="configForm.readings.$error.min || configForm.readings.$error.max">
               <div ng-message="min">Min number of readings is 1</div>
-              <div ng-message="max">Max number of readings is 15</div>
+              <div ng-message="max">Max number of readings is 300</div>
             </div>
           </md-input-container>
           <md-input-container flex>
