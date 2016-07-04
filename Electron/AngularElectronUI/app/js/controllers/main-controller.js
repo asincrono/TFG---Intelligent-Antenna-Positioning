@@ -23,7 +23,7 @@ angular.module('MainApp')
       const POLL_DELAY = 15
       const MAX_TRIES = 100
 
-      const URL = 'ftp://192.168.0.1/TFG/rnd_file_5B.data'
+      const URL = 'ftp://192.168.0.1/TFG/rnd_file_5GB.data'
       const USER = 'tfg'
       const PASS = 'tfg'
       const CURL_CMD = 'curl'
