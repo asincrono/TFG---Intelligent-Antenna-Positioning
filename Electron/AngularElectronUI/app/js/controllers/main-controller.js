@@ -257,6 +257,16 @@ angular.module('MainApp')
         })
       }
 
+      function getRawDataFileName (dir, baseName, extension) {
+        let timestampStr = new Date().toLocaleString()
+        let fileName = `${timestampStr}-${baseName}`
+        return path.format({
+          dir: dir,
+          name: fileName,
+          ext: extension
+        })
+      }
+
       // To parse the keyboard introduced manual position.
       function parsePosition (positionStr) {
         let x = 0
@@ -504,7 +514,8 @@ angular.module('MainApp')
 
         // Start data transfer
         curlProcess = startDataTransfer(10, 3000, 3000)
-        self.rawFileName = `data/raw_data_${(new Date()).toLocaleString()}.txt`
+        self.rawFileName = getRawDataFileName('data', 'raw', '.txt')
+        console.log('raw file name: ', self.rawFileName)
 
         // Stop process on application end.
         app.on('quit', () => {
