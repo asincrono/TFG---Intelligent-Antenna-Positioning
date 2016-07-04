@@ -23,7 +23,7 @@ angular.module('MainApp')
       const POLL_DELAY = 15
       const MAX_TRIES = 100
 
-      const URL = 'ftp://192.168.0.1/TFG/rnd_file_5GB.data'
+      const URL = 'ftp://192.168.0.1/TFG/rnd_file_5B.data'
       const USER = 'tfg'
       const PASS = 'tfg'
       const CURL_CMD = 'curl'
@@ -46,11 +46,11 @@ angular.module('MainApp')
       }
 
       const MOTOR_X_SPEED_MATRIX = new utils.Matrix2D(DEFAULTS.rows, DEFAULTS.columns)
-      MOTOR_X_SPEED_MATRIX.setDefault(215)
+      MOTOR_X_SPEED_MATRIX.setDefault(185)
 
       const MOTOR_Y_SPEED_MATRIX = new utils.Matrix2D(DEFAULTS.rows, DEFAULTS.columns)
-      MOTOR_Y_SPEED_MATRIX.setDefault(215)
-      MOTOR_Y_SPEED_MATRIX.set(4, 4, 256)
+      MOTOR_Y_SPEED_MATRIX.setDefault(185)
+      MOTOR_Y_SPEED_MATRIX.set(4, 4, 200)
 
       const MSG_ARGS = {
         tolerance: TOLERANCE,
