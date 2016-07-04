@@ -222,6 +222,42 @@ angular.module('MainApp')
       })
     }
 
+    function getLevelSync (device) {
+      let level = null
+      let procNetWireless = fs.readFileSync(PROC_NET_WIRELESS, 'utf8')
+      let lines = procNetWireless.split('\n')
+      let line = lines.filter(line => line.includes(device))[0]
+      if (line) {
+        let values = lineToValues(line)
+        level = parseInt(values[3], 10)
+      }
+      return level
+    }
+
+    function getRxBytesSync (device) {
+      let rxBytes = null
+      let procNetDev = fs.readFileSync(PROC_NET_DEV, 'utf8')
+      let lines = procNetDev.split('\n')
+      let line = lines.filter(line => line.includes(device))[0]
+      if (line) {
+        let values = lineToValues(line)
+        rxBytes = parseInt(values[1], 10)
+      }
+      return rxBytes
+    }
+
+    function getTxBytesSync (device) {
+      let txBytes = null
+      let procNetDev = fs.readFileSync(PROC_NET_DEV, 'utf8')
+      let lines = procNetDev.split('\n')
+      let line = lines.filter(line => line.includes(device))[0]
+      if (line) {
+        let values = lineToValues(line)
+        txBytes = parseInt(values[9], 10)
+      }
+      return txBytes
+    }
+
     return {
       listIfaces: listIfaces,
       NetStats: NetStats,
@@ -229,6 +265,9 @@ angular.module('MainApp')
       checkRxBitrate: checkRxBitrate,
       getRx: getRx,
       getTx: getTx,
-      getRxTxStats: getRxTxStats
+      getRxTxStats: getRxTxStats,
+      getLevelSync: getLevelSync,
+      getRxBytesSync: getRxBytesSync,
+      getTxBytesSync: getTxBytesSync
     }
   })

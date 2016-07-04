@@ -8,6 +8,7 @@ angular.module('MainApp')
       const path = require('path')
       const utils = require('./js/utils/utils.js')
       const conversion = require('./js/utils/conversion.js')
+      const fs = require('fs')
 
       const MSG_MOVE_XY_CODE = 0
 
@@ -503,6 +504,7 @@ angular.module('MainApp')
 
         // Start data transfer
         curlProcess = startDataTransfer(10, 3000, 3000)
+        self.rawFileName = `data/raw_data_${(new Date()).toLocaleString()}.txt`
 
         // Stop process on application end.
         app.on('quit', () => {
@@ -724,7 +726,20 @@ angular.module('MainApp')
 
             $timeout(() => {
               $scope.currentPosition.set(0, 0)
+
+              setTimeout(() => {
+                self.rawDataWriter = setInterval(() => {
+                  let timestamp = Date.now()
+                  let level = NetInfo.getLevelSync($scope.selectedDevice)
+                  let rxBytes = NetInfo.getRxBytesSync($scope.selectedDevice)
+
+                  fs.appendFileSync(self.rawFileName,
+                    `${timestamp} ${$scope.antennaPosition.x} ${$scope.antennaPosition.y} ${level} ${rxBytes}\n`,
+                    'utf8')
+                }, 1000)
+              }, 2500)
             }, 1)
+
             console.log('just changed currentPosition:', $scope.currentPosition)
             break
           case 'manual':
@@ -742,6 +757,8 @@ angular.module('MainApp')
         $scope.started = false
         // Stop curl executor
         curlProcess.quit()
+
+        clearInterval(self.rawDataWriter)
 
         // Deregister watchers.
         // We only need to stop the watchers in main controller as the ones
