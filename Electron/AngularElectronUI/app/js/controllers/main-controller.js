@@ -257,9 +257,9 @@ angular.module('MainApp')
         })
       }
 
-      function getRawDataFileName (dir, baseName, extension) {
-        let timestampStr = new Date().toLocaleString()
-        let fileName = `${timestampStr}-${baseName}`
+      function genRawDataFileName (dir, baseName, extension) {
+        let timeStr = new Date().toISOString()
+        let fileName = `${timeStr}-${baseName}`
         return path.format({
           dir: dir,
           name: fileName,
@@ -514,7 +514,7 @@ angular.module('MainApp')
 
         // Start data transfer
         curlProcess = startDataTransfer(10, 3000, 3000)
-        self.rawFileName = getRawDataFileName('data', 'raw', '.txt')
+        self.rawFileName = genRawDataFileName('data', 'raw', '.txt')
         console.log('raw file name: ', self.rawFileName)
 
         // Stop process on application end.
