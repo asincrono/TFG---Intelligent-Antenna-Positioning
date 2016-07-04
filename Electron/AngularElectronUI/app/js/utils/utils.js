@@ -225,7 +225,7 @@ class AntennaPosition extends Position {
   }
 
   appendFile (file) {
-    let data = `${new Date(this.stats.timeStamp)} ${this.x} ${this.y} ${this.stats.level} ${this.stats.bitrate.rx}\n`
+    let data = `${this.stats.timeStamp} ${this.x} ${this.y} ${this.stats.level} ${this.stats.bitrate.rx}\n`
     fs.appendFile(file, data, 'utf8', (err) => {
       if (err) {
         console.log('Error writing antenna position to file"', file, '"', err)
