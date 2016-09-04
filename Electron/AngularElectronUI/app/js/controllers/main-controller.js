@@ -39,8 +39,8 @@ angular.module('MainApp')
         columns: 5,
         systemTolerance: 10,
         motorTolerance: 5,
-        motorSpeed: 175,
-        motorBaseSpeed: 175,
+        motorSpeed: 220,
+        motorBaseSpeed: 220,
         motorMaxSpeed: 200,
         motorPollDelay: 15,
         motorMaxTries: 100
